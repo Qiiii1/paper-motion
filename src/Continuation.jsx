@@ -103,7 +103,7 @@ function Devices(){
   return <section className="scrub device-chapter" ref={root} id="devices" aria-label="跨设备展示"><div className="pin devices-pin">
     <h2>On every<br/>→ device</h2>
     <div className="phone-view"><img src={images+img+'.webp'} loading="lazy" alt="手机端编辑与浏览界面"/><canvas ref={canvas} aria-hidden="true"/></div>
-    <div className="device-text"><p>从桌面上的编辑器，<br/>到手中的论文动效。</p><p>继续滚动，转动手机查看不同画面。</p></div>
+    <div className="device-text"><p>从桌面上的编辑器，<br/>到手中的论文动效。</p><p>点击下一幕，转动手机查看不同画面。</p></div>
   </div></section>;
 }
 const ratios=['3:4','4:5','9:16','1:1','4:3','16:9'];

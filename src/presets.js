@@ -55,7 +55,7 @@ function layout(kind,i,t,w,h) {
     width = 0.115+i*.008; bend=.022;
   }
   width = i<visible ? width*size : 0;
-  return [cx+x*size, cy+y*size,z*size,yaw,pitch,roll,width,bend,0,width*1.32];
+  return [cx+x*size, cy+y*size,z*size,yaw,pitch,roll,width,bend,0,width*1.32,0];
 }
 function blend(a,b,f) {
   if (f<=0) return a;
@@ -84,6 +84,6 @@ export function galleryPose(original,i,extra,t,w,h) {
   const pose=blend(layout(k,i,t,w,h),next,ease(.36,.98,cursor-k));
   const gallery=blend(original,pose,ease(0,.48,extra));
   const fan = i<9 ? Math.min(w,h)*.32 : 0;
-  const compact=[(i-4)*fan*.055,Math.sin(i)*fan*.06,(i-4)*fan*.045,0,0,(i-4)*.066,fan,.012,0,fan*1.32];
+  const compact=[(i-4)*fan*.055,Math.sin(i)*fan*.06,(i-4)*fan*.045,0,0,(i-4)*.066,fan,.012,0,fan*1.32,0];
   return blend(gallery,compact,ease(4.86,5.58,extra));
 }

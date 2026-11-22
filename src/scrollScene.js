@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { followScroll } from './scrollProgress';
 
 // Each chapter owns its scroll distance. Adjacent chapters can enter and leave
 // the viewport naturally while their internal picture stays pinned.
@@ -8,22 +9,34 @@ export function useScrollScene() {
   const [near,setNear] = useState(false);
   useEffect(()=>{
     const el=root.current;
-    let frame=0, watching=false;
-    function update(){
+    const media=matchMedia('(prefers-reduced-motion: reduce)');
+    let frame=0, watching=false, previousTime, current=0;
+    function update(now){
       frame=0;
       const box=el.getBoundingClientRect();
-      const distance = box.height-el.firstElementChild.offsetHeight;
-      setProgress(Math.max(0,Math.min(1,-box.top/Math.max(1,distance))));
+      const distance=Math.max(1,box.height-el.firstElementChild.offsetHeight);
+      const target=Math.max(0,Math.min(1,-box.top/distance));
+      const dt=previousTime===undefined ? 1/60 : Math.min(.055,(now-previousTime)/1000);
+      current=now===undefined || media.matches ? target : followScroll(current,target,dt,distance);
+      setProgress(current);
+      previousTime=current===target ? undefined : now;
+      if(watching && current!==target) queue();
     }
     function queue(){ if (!frame && watching) frame=requestAnimationFrame(update) }
     const obs=new IntersectionObserver(([entry])=>{
+      cancelAnimationFrame(frame);
       watching=entry.isIntersecting;setNear(watching);update();
     },{rootMargin:'15% 0px'});
     obs.observe(el);
     const resize=new ResizeObserver(queue);resize.observe(el);
     window.addEventListener('scroll',queue,{passive:true});
+    media.addEventListener('change',queue);
     update();
-    return ()=>{obs.disconnect();resize.disconnect();cancelAnimationFrame(frame);window.removeEventListener('scroll',queue)};
+    return ()=>{
+      obs.disconnect();resize.disconnect();cancelAnimationFrame(frame);
+      window.removeEventListener('scroll',queue);
+      media.removeEventListener('change',queue);
+    };
   },[]);
   function seek(value) {
     const el=root.current;

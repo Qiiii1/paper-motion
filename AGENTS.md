@@ -11,3 +11,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 Keep moving paper cards physically separate, including bent edges and in-between scroll positions. Preserve natural front-to-back occlusion when they overlap on screen.
 
 Calibrate the opening light against Premotio at matched viewport sizes. Keep the paper-coloured background uniform and apply the white core and radial colour dispersion to the sheets.
+
+Let users advance one stage at a time by tapping or clicking, including on the artwork, or scrub the animation with native scrolling. Manual scrolling takes over during click playback. Leave the opening centre clear of paper and omit the top navigation bar. Feed the upright radial deck through a single right-rear exit. Hold the finished grid flat with horizontal pointer parallax. Form the final tilted carousel from a handful of lower-left grid sheets in sequence, bending each sheet around the circumference.
+
+Smooth scroll-driven visual progress while respecting the system's reduced-motion preference.
