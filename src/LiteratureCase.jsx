@@ -4,9 +4,10 @@ import { publicAsset } from './publicAsset';
 import { viewportProgress } from './scrollProgress';
 
 const articles = [
-  { name: 'Sensecape', file: 'sensecape-paper', size: [638, 747], hook: <>From chat to<br />spatial knowledge</>, intro: 'Sensecape turns LLM conversation output into movable information objects and supports organization across levels.' },
-  { name: 'Provenance', file: 'node-flow-paper', size: [605, 744], hook: <>Trace the work<br />behind the output</> },
-  { name: 'Interactive Debugging', file: 'ai-chains-paper', size: [737, 744], hook: <>Edit the middle.<br />Test the effect.</> },
+  { name: 'Sensecape', file: 'literature/sensecape-paper', size: [638, 747], hook: <>From chat to<br />spatial knowledge</>, intro: 'Sensecape turns LLM conversation output into movable information objects and supports organization across levels.' },
+  { name: 'Provenance', file: 'literature/node-flow-paper', size: [605, 744], hook: <>Trace the work<br />behind the output</> },
+  { name: 'Interactive Debugging', file: 'literature/ai-chains-paper', size: [737, 744], hook: <>Edit the middle.<br />Test the effect.</> },
+  { name: 'Workflow Graph', file: 'papers/trust', size: [503, 748], hook: <>From trace to<br />editable steps</> },
 ];
 
 const stripCount = 24;
@@ -38,7 +39,7 @@ function Rise({ children, className = '' }) {
 
 function ReelSheet({ article, current }) {
   const [width, height] = article.size;
-  const source = asset(article.file);
+  const source = publicAsset(article.file + '.png');
   return <span className="case-sheet" data-current={current ? '' : undefined}
     style={{ '--strip-count': stripCount, '--paper-image': 'url("' + source + '")' }}>
     <img className="case-page" src={source} width={width} height={height} alt="" decoding="async" />
@@ -84,7 +85,7 @@ function CaseArt({ index, titleId }) {
         canvas.style.setProperty('--case-wall-bleed', (heading.offsetTop + heading.offsetHeight + 12) * wall + 'px');
       }
       const { width, height: artHeight } = canvas.getBoundingClientRect();
-      const faceWidth = Math.min(width * .76, artHeight * .66, 430);
+      const faceWidth = Math.min(width * .76, artHeight * (index === 3 ? .81 : .66), 430);
       const faceHeight = faceWidth * 1.18;
       const radius = faceHeight * .94;
       const gridWidth = Math.min(width * .72, artHeight * .66, 500);
@@ -326,11 +327,53 @@ function Debugging() {
   </>;
 }
 
-const caseBodies = [Sensecape, Provenance, Debugging];
+const graphImplications = [
+  'See step relationships.',
+  'Structural links ≠ factual proof.',
+  'Understanding ≠ task performance.',
+];
+
+function WorkflowGraph() {
+  return <>
+    <Section title={<>Core Idea / Trace2Flow <a className="citation" href="#ref-08">[8]</a></>}>
+      <p className="case-statement">Represent the execution process as a graph.</p>
+    </Section>
+    <Rise className="case-workflow-figure">
+      <Figure file="node-flow-interface" alt="Node Flow example showing linked execution steps and a workflow editor.">
+        Node Flow example · Placeholder for Trace2Flow Figure 1
+      </Figure>
+    </Rise>
+    <Section title="Research Implication">
+      <ol className="case-workflow-implications">
+        {graphImplications.map((text, index) => <li key={text}>
+          <span aria-hidden="true">0{index + 1}</span>{text}
+        </li>)}
+      </ol>
+    </Section>
+    <Rise>
+      <aside className="case-workflow-question">
+        <CircleHelp aria-hidden="true" />
+        <div>
+          <h4>Still to Test</h4>
+          <p>Which judgments improve?<br />When does the graph add load?</p>
+        </div>
+      </aside>
+    </Rise>
+    <Rise>
+      <aside className="case-workflow-status">
+        <h4>Paper Status</h4>
+        <p>arXiv v2 preprint.</p>
+      </aside>
+    </Rise>
+    <Rise><p className="case-note"><a href="#ref-08">[8]</a> Wu et al., Trace2Flow, arXiv:2609.13136v2, Figure 1.</p></Rise>
+  </>;
+}
+
+const caseBodies = [Sensecape, Provenance, Debugging, WorkflowGraph];
 
 export function LiteratureCase({ id, index, children }) {
   const Body = caseBodies[index];
-  return <section className="research-chapter literature-case" id={id} data-chapter data-art-covered aria-labelledby={id + '-title'}>
+  return <section className="research-chapter literature-case" id={id} data-chapter data-art-covered data-workflow-case={index === 3 ? '' : undefined} aria-labelledby={id + '-title'}>
     <CaseArt index={index} titleId={id + '-title'} />
     <div className="case-body">
       <Body />

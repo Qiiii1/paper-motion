@@ -59,3 +59,11 @@ final result: passed
 Compared the 390 × 1429 reference with the local view. Checked both rings of research-paper images, the four lines of inquiry, the relationship diagram, and the synthesis and research-gap panels. The original literature table remains available under the map.
 
 At 320 × 568, 390 × 844, 390 × 1429, and 1360 × 880, Chromium verified that the example text slides down inside fixed masks. All text clears before the paper sequence begins. Sampled the sequence across both rings to confirm that only one paper advances at a time from the right. Checked reverse scrolling, click playback, and reduced motion.
+
+## Workflow Graph
+
+final result: passed
+
+以 390 CSS 像素、1 倍设备像素比并排核对用户截图和 Chrome 预览。初版沿用了全屏论文轮播，造成封面与说明文字之间的留白过大。调整后，手机上的封面、引导语与正文首节在同一屏内顺次衔接，3 条研究结论保留错位排列和浅蓝、浅绿配色。沿用项目的 Inter Tight 标题、正文样式与珊瑚色标记。
+
+封面暂用 Co-living with agentic AI 论文页，正文暂用 Node Flow 工作流图，配图注明占位用途。Trace2Flow 文案、预印本状态与引用链接可正常阅读。第 14 章直接显示 Workflow Graph，旧文字页和重复折叠说明已移除。390 × 844、320 × 568、844 × 390 和 1280 × 800 完成验收，覆盖轮播正面、章节导航、减少动态效果与横向溢出检查。

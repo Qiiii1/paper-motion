@@ -5,12 +5,13 @@
   --case-green: #b9d8b5;
   --case-sand: #f1ecd9;
   --case-width: min(100%, 720px);
+  --case-panel-height: var(--screen);
   background: var(--paper);
 }
 
 .case-runway {
   position: relative;
-  height: calc(var(--screen) + 72svh);
+  height: calc(var(--case-panel-height) + 72svh);
 }
 
 .case-runway[data-first] { height: calc(var(--screen) + 126svh); }
@@ -18,7 +19,7 @@
 .case-pin {
   position: sticky;
   top: 0;
-  height: var(--screen);
+  height: var(--case-panel-height);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   padding: clamp(18px, 4svh, 36px) 0 16px;
@@ -51,7 +52,7 @@
 
 .case-mark { margin-top: 11px; }
 .case-mark span { display: block; width: 48px; height: 4px; background: var(--case-coral); }
-.case-arrival { position: absolute; inset: auto 0 var(--screen); pointer-events: none; }
+.case-arrival { position: absolute; inset: auto 0 var(--case-panel-height); pointer-events: none; }
 .case-mask { overflow: clip; }
 .case-rise {
   opacity: var(--case-reveal, 0);
@@ -352,6 +353,94 @@
 .case-tests strong { padding: 12px 4px; border-radius: 7px; background: var(--case-blue); text-align: center; }
 .case-tests strong + strong { background: var(--case-green); }
 
+@media (max-width: 679px) and (orientation: portrait) {
+  .literature-case[data-workflow-case] { --case-panel-height: min(var(--screen), calc(100vw + 93px)); }
+}
+
+[data-workflow-case] .case-title {
+  font-size: clamp(26px, 7.7vw, 54px);
+  font-weight: 660;
+}
+[data-workflow-case] .case-mark span { width: 78px; }
+[data-workflow-case] .case-hero-copy,
+[data-workflow-case] .case-body { width: min(100%, 620px); }
+[data-workflow-case] .case-section h4,
+.case-workflow-question h4,
+.case-workflow-status h4 { text-transform: uppercase; }
+
+.case-workflow-figure img {
+  aspect-ratio: 350 / 285;
+  background: #fff;
+}
+
+.case-workflow-implications {
+  display: grid;
+  gap: 7px;
+  margin: 3px 0;
+  padding: 0;
+  list-style: none;
+  color: var(--case-navy);
+  font: 740 clamp(16px, 4.55vw, 22px)/1.2 var(--heading);
+}
+.case-workflow-implications li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2ch 1fr;
+  align-items: start;
+  gap: 12px;
+  width: 89%;
+  padding: 17px 15px;
+  min-height: 70px;
+  border-radius: 12px;
+  background: #e4f5f7;
+}
+.case-workflow-implications li:nth-child(2) {
+  justify-self: end;
+  background: #ebf5e6;
+}
+.case-workflow-implications li:nth-child(3) { margin-inline: 2%; }
+.case-workflow-implications li span {
+  color: #c85036;
+  font-size: 1.2em;
+  line-height: 1;
+}
+.case-workflow-implications li + li::before {
+  content: '';
+  position: absolute;
+  top: -24px;
+  right: 13%;
+  width: 2px;
+  height: 30px;
+  rotate: 20deg;
+  background: var(--case-coral);
+}
+.case-workflow-implications li:nth-child(3)::before {
+  right: auto;
+  left: 8%;
+  rotate: -20deg;
+}
+
+.case-workflow-question, .case-workflow-status {
+  padding: clamp(16px, 4.5vw, 24px);
+  border-radius: 10px;
+}
+.case-workflow-question {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 15px;
+  background: #fdf0e6;
+}
+.case-workflow-question svg { width: 25px; height: 25px; color: #c85036; }
+.case-workflow-question h4, .case-workflow-status h4 {
+  margin: 0 0 9px;
+  font: 730 clamp(14px, 3.8vw, 18px)/1.14 var(--heading);
+}
+.case-workflow-question h4 { color: #c85036; }
+.case-workflow-question p { font: 740 clamp(16px, 4.5vw, 22px)/1.16 var(--heading); }
+.case-workflow-status { background: var(--case-navy); color: #fff; }
+.case-workflow-status p { font-size: clamp(13px, 3.6vw, 16px); }
+
 @media (min-width: 760px) {
   .case-pin header, .case-hero-copy, .case-body { padding-inline: 30px; }
   .case-body { padding-top: 22px; }
@@ -359,7 +448,7 @@
 
 @media (max-height: 450px) and (orientation: landscape) {
   .case-pin { padding-top: 9px; padding-bottom: 9px; }
-  .case-title, .case-hook { font-size: clamp(20px, 6svh, 29px); }
+  .case-pin .case-title, .case-pin .case-hook { font-size: clamp(20px, 6svh, 29px); }
   .case-art { margin-block: 4px; }
 }
 

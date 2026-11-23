@@ -146,9 +146,9 @@ export function ResearchChapters({ edition, ui, lang }) {
           </ResearchExample>
           : chapter === 10
           ? <ResearchLiterature id={id} phase={phase} />
-          : chapter >= 11 && chapter <= 13
+          : chapter >= 11 && chapter <= 14
           ? <LiteratureCase id={id} index={chapter - 11}>
-            <details className="literature-details">
+            {chapter < 14 && <details className="literature-details">
               <summary>{chapter === 13 ? 'Study notes and literature comparison' : 'Study notes'}</summary>
               <div className="chapter-copy">
                 {blocks.map((block, i) => <Paragraph key={i} block={block} />)}
@@ -156,7 +156,7 @@ export function ResearchChapters({ edition, ui, lang }) {
                   ? <ResearchTable key={i} rows={block.rows} />
                   : <Paragraph key={i} block={block} />)}
               </div>
-            </details>
+            </details>}
           </LiteratureCase>
           : <section className="research-chapter" id={id} data-chapter data-motion={phase} aria-labelledby={id + '-title'}>
             {phase !== undefined && <div className={'motion-window window-' + chapter} data-play-surface aria-hidden="true" />}

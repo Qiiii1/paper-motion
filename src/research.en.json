@@ -345,29 +345,8 @@
       ]
     },
     {
-      "title": "Representing processes as graphs",
-      "blocks": [
-        {
-          "kind": "p",
-          "text": "Related work: Trace2Flow, a system for post-task review and workflow reuse described in a preprint [8]."
-        },
-        {
-          "kind": "p",
-          "text": "The study explores converting an agent's execution process into a graph to support understanding, inspection and subsequent interaction."
-        },
-        {
-          "kind": "p",
-          "text": "Implications: graphs can make relationships between steps visible. Checking structural and factual issues calls for different evidence. Better understanding of the process does not establish improvement on every task metric."
-        },
-        {
-          "kind": "p",
-          "text": "Questions to test: what kinds of judgment do nodes and dependency links improve? Under what conditions do they add to the user's workload?"
-        },
-        {
-          "kind": "note",
-          "text": "Publication status: the cited arXiv version 2 is treated as a preprint."
-        }
-      ]
+      "title": "Workflow Graph",
+      "blocks": []
     },
     {
       "title": "How context evolves in design tasks",
