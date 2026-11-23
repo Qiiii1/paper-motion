@@ -1,0 +1,897 @@
+{
+  "title": "Visualizing Context and Correcting Deviations in Long AI Conversations",
+  "chapters": [
+    {
+      "title": "Research title",
+      "blocks": [
+        {
+          "kind": "lead",
+          "text": "From reviewing information to intervening locally and verifying the results."
+        },
+        {
+          "kind": "p",
+          "text": "Keywords: long conversations, context visualization, human–AI collaboration, dependencies, deviation correction."
+        }
+      ]
+    },
+    {
+      "title": "Research Approach",
+      "layout": "approach",
+      "steps": [
+        "Real-world problem",
+        "Related research",
+        "Comparison & critique",
+        "Research gap",
+        "Research questions",
+        "Research methods"
+      ]
+    },
+    {
+      "title": "Research background",
+      "layout": "stack"
+    },
+    {
+      "title": "Position in design research",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Design research in the age of AI. This study connects with three areas of design research."
+        },
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "Research area",
+              "Question addressed in this study"
+            ],
+            [
+              "AI and design practice",
+              "How users understand and adjust tasks involving AI"
+            ],
+            [
+              "Representing and reusing design knowledge",
+              "How goals, constraints, materials and outputs can be linked traceably"
+            ],
+            [
+              "Human judgment and control",
+              "How users set the scope of changes, preserve existing work and verify execution"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "DRS work on node flow in collaboration and node-based AI tools informs the study's approach to knowledge representation and interaction design [3–4]. The argument also draws on human–computer interaction, visual analytics and explainable AI research."
+        },
+        {
+          "kind": "p",
+          "text": "Design opportunity: turn task relationships scattered across a conversation into objects that users can inspect and act on."
+        }
+      ]
+    },
+    {
+      "title": "Scope of the study",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Here, “context” primarily means task context that users can understand, inspect and change."
+        },
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "Element",
+              "Meaning"
+            ],
+            [
+              "Goals",
+              "What the current task is intended to achieve"
+            ],
+            [
+              "Constraints",
+              "Conditions the task must satisfy"
+            ],
+            [
+              "Materials",
+              "Inputs and evidence used in the task"
+            ],
+            [
+              "Plans",
+              "Intended steps for completing the task"
+            ],
+            [
+              "Outputs",
+              "Intermediate or final artifacts already produced"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "Conceptual boundary: information present in the conversation history, information displayed by the interface and information actually used by the model may differ."
+        }
+      ]
+    },
+    {
+      "title": "Example of a changing condition",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Scenario: developing an e-commerce system with AI over time. Drawing on Web-Bench’s Shopping Mart task, the user and AI progressively develop the storefront, registration, order payment and referral rewards across the front end, back end and database [16]."
+        },
+        {
+          "kind": "p",
+          "text": "Related workflow: enter a referral code → establish the referral relationship → register → pay for the first order → issue a reward → display it on the page."
+        },
+        {
+          "kind": "p",
+          "text": "Rule change: originally, one reward was issued when a referred user registered and another after their first payment. As development progressed, the user revised the rule."
+        },
+        {
+          "kind": "quote",
+          "text": "“Remove the registration reward. Issue a reward only after the referred user’s first order payment succeeds.”"
+        },
+        {
+          "kind": "p",
+          "text": "Update the registration reward logic, the rule shown on the page and the related tests."
+        },
+        {
+          "kind": "p",
+          "text": "Verify that the first-payment reward still triggers and that rewards cannot be issued twice."
+        },
+        {
+          "kind": "p",
+          "text": "Preserve referral codes and relationships, along with unaffected product listings and shopping-cart features."
+        },
+        {
+          "kind": "p",
+          "text": "The judgment this example calls for is how to update the affected work while keeping outputs that remain valid."
+        }
+      ]
+    },
+    {
+      "title": "Finding and checking affected work",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "The requirement changes in one message, while its implementation is spread across multiple modules."
+        },
+        {
+          "kind": "p",
+          "text": "Removing the registration reward affects registration handling, reward records, the rule shown on the page and test cases. The agent’s “done” message gives the user little evidence that every required change was made and no unintended changes occurred."
+        },
+        {
+          "kind": "p",
+          "text": "What users need to determine: which rule changed → which modules use it → which outputs should be updated or preserved."
+        },
+        {
+          "kind": "p",
+          "text": "Visualization and intervention workflow: inspect links between rules and modules → select a scope → preview changes → let the AI continue → compare before and after."
+        },
+        {
+          "kind": "p",
+          "text": "Missed change: the page copy is updated, but registration still triggers a reward."
+        },
+        {
+          "kind": "p",
+          "text": "Out-of-scope change: removing the registration reward also removes the first-payment reward."
+        },
+        {
+          "kind": "p",
+          "text": "Unnecessary re-execution: the system regenerates referral codes or existing referral relationships."
+        },
+        {
+          "kind": "p",
+          "text": "Research focus: help users judge the impact before changing a requirement and verify what actually happened afterward."
+        },
+        {
+          "kind": "note",
+          "text": "The e-commerce task and original reward mechanism come from public Web-Bench materials. The rule change and error scenarios were devised for this study to illustrate the proposed mechanism. Web-Bench is a preprint, and its sequential development task differs from a study of real users’ long conversations."
+        }
+      ]
+    },
+    {
+      "title": "Defining the scope of a change",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "After requesting a change, users generally still need to decide the following."
+        },
+        {
+          "kind": "p",
+          "text": "Which object should be changed directly?"
+        },
+        {
+          "kind": "p",
+          "text": "Which downstream steps need to be revisited?"
+        },
+        {
+          "kind": "p",
+          "text": "Which outputs should be preserved?"
+        },
+        {
+          "kind": "p",
+          "text": "What needs verification without regeneration?"
+        },
+        {
+          "kind": "p",
+          "text": "Two risks arise. Under-editing lets an outdated condition continue to affect later work. Over-editing changes unrelated content and can overwrite valid outputs."
+        },
+        {
+          "kind": "p",
+          "text": "Keywords: local edits, scope of impact, preserving outputs."
+        }
+      ]
+    },
+    {
+      "title": "Verifying the outcome",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "An agent’s statement that it made a change is insufficient evidence that it carried it out correctly."
+        },
+        {
+          "kind": "p",
+          "text": "Users still need to check for missed changes, out-of-scope edits, unnecessary reruns and outputs that fail to meet the revised condition."
+        },
+        {
+          "kind": "p",
+          "text": "Research sequence: what the user intended to change → what the system actually changed → whether they match."
+        },
+        {
+          "kind": "p",
+          "text": "Prior research on debugging found that users can have difficulty determining whether their edits took effect [7]."
+        }
+      ]
+    },
+    {
+      "title": "Four strands of related work",
+      "blocks": [
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "Research strand",
+              "Main focus",
+              "Relevance to this study"
+            ],
+            [
+              "Information organization in long conversations",
+              "Reviewing conversations, topic structure and retrieval",
+              "Helps users find relevant information"
+            ],
+            [
+              "Showing the basis of AI outputs",
+              "Sources, process records and traceability",
+              "Helps users inspect what an output is based on"
+            ],
+            [
+              "Identifying and addressing misunderstandings",
+              "Intermediate editing, feedback, debugging and control",
+              "Helps users carry out changes"
+            ],
+            [
+              "Context evolution in design tasks",
+              "Goals, constraints and solutions change together",
+              "Explains why changes continue to arise"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "The review compares what each strand addresses and where questions remain."
+        }
+      ]
+    },
+    {
+      "title": "Research on information organization",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Representative work: Sensecape, a system for multilevel information exploration and sensemaking [5]."
+        },
+        {
+          "kind": "p",
+          "text": "The system turns generated content from a linear chat into spatial information objects. It supports topic exploration, grouping and movement between levels of abstraction, helping users review and organize complex information."
+        },
+        {
+          "kind": "p",
+          "text": "Implication: making information actionable gives users a way into inspecting the task."
+        },
+        {
+          "kind": "p",
+          "text": "Limits of the evidence: thematic association alone does not establish an execution dependency. Two items can share a topic without a change to one requiring a change to the other. The system's overall effects also cannot be attributed to the links alone."
+        }
+      ]
+    },
+    {
+      "title": "Process records and provenance",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Representative work: a node-flow strategy for AI-integrated collaboration in design teams [3]."
+        },
+        {
+          "kind": "p",
+          "text": "Nodes record prompts, operations and outputs. Links show how data flows, helping a team understand, share and reuse its collaborative process."
+        },
+        {
+          "kind": "p",
+          "text": "Implication: retain the steps that produced an output and the relationships between them alongside the output itself. Visual analytics research distinguishes types of provenance records and the purposes they serve [9–10]."
+        },
+        {
+          "kind": "p",
+          "text": "Questions that remain: do earlier conditions still apply? Which outputs are affected when a condition changes? How can users verify that a change took effect?"
+        }
+      ]
+    },
+    {
+      "title": "Editing and debugging intermediate steps",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Representative work: AI Chains, an inspectable and controllable prompt-chain interface [6], and AGDebugger, an interactive debugging and steering system for multi-agent AI [7]."
+        },
+        {
+          "kind": "p",
+          "text": "Common interaction: show intermediate steps → identify the problem → adjust inputs or steps → run again."
+        },
+        {
+          "kind": "p",
+          "text": "Implication: users need control over intermediate steps as well as the ability to regenerate a final answer."
+        },
+        {
+          "kind": "p",
+          "text": "Open questions: the ability to edit does not establish that users can judge the scope of impact accurately, and rerunning a step does not make outcomes easy to verify. Prompt-chain and debugging systems typically combine several capabilities, so this evidence cannot isolate the effect of the graph."
+        }
+      ]
+    },
+    {
+      "title": "Representing processes as graphs",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Related work: Trace2Flow, a system for post-task review and workflow reuse described in a preprint [8]."
+        },
+        {
+          "kind": "p",
+          "text": "The study explores converting an agent's execution process into a graph to support understanding, inspection and subsequent interaction."
+        },
+        {
+          "kind": "p",
+          "text": "Implications: graphs can make relationships between steps visible. Checking structural and factual issues calls for different evidence. Better understanding of the process does not establish improvement on every task metric."
+        },
+        {
+          "kind": "p",
+          "text": "Questions to test: what kinds of judgment do nodes and dependency links improve? Under what conditions do they add to the user's workload?"
+        },
+        {
+          "kind": "note",
+          "text": "Publication status: the cited arXiv version 2 is treated as a preprint."
+        }
+      ]
+    },
+    {
+      "title": "How context evolves in design tasks",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Goals and solutions often influence one another in design. Research on the co-evolution of problem and solution provides a foundation [11]. A recent design review situates generative AI collaboration within the conceptual design process [12]."
+        },
+        {
+          "kind": "p",
+          "text": "Evolution: initial problem → explore solutions → discover a new constraint → redefine the problem → revise the solution."
+        },
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "Situation",
+              "Meaning"
+            ],
+            [
+              "Legitimate adjustment",
+              "A change in goals, constraints or design that the user accepts"
+            ],
+            [
+              "Obsolete information",
+              "Previously valid information no longer applies at the current stage"
+            ],
+            [
+              "Interpretation deviation",
+              "The system's understanding of a current requirement differs from the user's intent"
+            ],
+            [
+              "Execution deviation",
+              "The system does not correctly implement an explicit change"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "Research focus: help users inspect changes and distinguish legitimate evolution from deviations."
+        }
+      ]
+    },
+    {
+      "title": "Methods used in prior work",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "The categories organize the literature comparison. They do not report how frequently each method is used."
+        },
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "Method",
+              "Typical participants or materials",
+              "Question it can address"
+            ],
+            [
+              "Interviews and process walkthroughs",
+              "Users and their task records",
+              "Where users have difficulties and how they respond"
+            ],
+            [
+              "Prototyping and co-design",
+              "Visualization concepts and interaction workflows",
+              "What information and controls users need"
+            ],
+            [
+              "Controlled experiments",
+              "Different interfaces for the same task",
+              "How presentation affects judgments and actions"
+            ],
+            [
+              "Log and artifact analysis",
+              "Conversations, tool operations and versions of outputs",
+              "What users did and how the task changed"
+            ],
+            [
+              "Field trials",
+              "Ongoing work tasks",
+              "Whether a mechanism can fit into everyday use"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "How the methods relate: interviews identify difficulties, design exploration yields testable mechanisms, and controlled and field evaluations test their effects and conditions of use [5–8,13]."
+        }
+      ]
+    },
+    {
+      "title": "Comparing research capabilities",
+      "blocks": [
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "Research area",
+              "Primary capability",
+              "What this study adds"
+            ],
+            [
+              "Information organization",
+              "Browse, categorize and review",
+              "Trace effects on execution after a condition changes"
+            ],
+            [
+              "Process provenance",
+              "Inspect sources and historical actions",
+              "Decide whether earlier information still applies"
+            ],
+            [
+              "Intermediate editing",
+              "Change steps and rerun them",
+              "Determine what to change and what to preserve"
+            ],
+            [
+              "Graph representation",
+              "Inspect steps and their relationships",
+              "Test presentation while holding functionality constant"
+            ],
+            [
+              "Outcome verification",
+              "Inspect updated content",
+              "Compare actual changes with the intended scope"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "The proposed connection is task relationships → intervention scope → verification of execution."
+        },
+        {
+          "kind": "note",
+          "text": "The table is an analytical synthesis. An individual paper may support several capabilities."
+        }
+      ]
+    },
+    {
+      "title": "Tensions and limitations",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Transparency and effort: more records can provide evidence while increasing reading and search costs. Explanatory systems should be designed and evaluated in relation to task goals and user needs. The amount of information displayed is an insufficient measure of quality [13]."
+        },
+        {
+          "kind": "p",
+          "text": "Automation and control: automatically expanding the scope of changes may save effort, but it may also change work that users want to preserve."
+        },
+        {
+          "kind": "p",
+          "text": "Trust and correct judgment: a clear interface cannot guarantee correct execution. Evaluating appropriate trust requires distinguishing user beliefs, intentions and reliance behavior [14]. Measures to reduce overreliance may also introduce tradeoffs for the user experience [15]."
+        },
+        {
+          "kind": "p",
+          "text": "Evaluation goal: determine whether users more accurately find problems, define the scope and verify outcomes."
+        }
+      ]
+    },
+    {
+      "title": "Research gaps",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Gap 1 — evidence for judging intervention scope. Existing systems often change task decomposition, editing and visualization at once. The effect of nodes and dependency links still needs to be tested while keeping the information and available actions constant."
+        },
+        {
+          "kind": "p",
+          "text": "Gap 2 — connecting pre- and post-intervention checks. Further research is needed on how to relate the user's intended scope to the actual changes in later plans and intermediate artifacts."
+        },
+        {
+          "kind": "p",
+          "text": "Research focus: help users see the process, judge where changes are needed and verify that the changes were carried out correctly."
+        },
+        {
+          "kind": "note",
+          "text": "These gaps are judgments based on the representative work reviewed. They should be reassessed as the review expands and do not establish that the wider field has left the topics unstudied."
+        }
+      ]
+    },
+    {
+      "title": "Research questions",
+      "blocks": [
+        {
+          "kind": "sub",
+          "text": "RQ1 · Judging the scope of intervention"
+        },
+        {
+          "kind": "p",
+          "text": "With the same editing and preview functions available, how do nodes and dependency links, compared with a linear to-do list, affect users’ ability to identify direct targets, affected downstream steps and outputs to preserve?"
+        },
+        {
+          "kind": "sub",
+          "text": "RQ2 · Verifying the outcome of intervention"
+        },
+        {
+          "kind": "p",
+          "text": "After the agent continues execution, how does showing changes in plans and intermediate artifacts affect users’ ability to detect missed changes, out-of-scope changes and unnecessary re-execution?"
+        },
+        {
+          "kind": "p",
+          "text": "The questions connect intended scope before execution with actual changes after execution."
+        }
+      ]
+    },
+    {
+      "title": "Research approach",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Overall approach: reconstruct real tasks → identify difficulties and needs → develop interaction concepts → conduct controlled evaluations."
+        },
+        {
+          "kind": "p",
+          "text": "Phase 1 uses interviews and task walkthroughs to identify difficulties after conditions change, existing user strategies and information needs."
+        },
+        {
+          "kind": "p",
+          "text": "Phase 2 develops visual representations and interactions through co-design and iterative prototyping, based on findings from Phase 1."
+        },
+        {
+          "kind": "p",
+          "text": "Phase 3 separately evaluates judgments about intervention scope and verification of outcomes, testing how the design works and where it applies."
+        },
+        {
+          "kind": "p",
+          "text": "The literature and cases identify candidate problems, formative research validates and refines them, and design and evaluation test the interaction mechanisms. Findings from each phase may revise the questions and design."
+        }
+      ]
+    },
+    {
+      "title": "Participants and setting",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Proposed participants: design students or practitioners who use generative AI in ongoing design tasks and have experience changing requirements, preserving outputs and checking results."
+        },
+        {
+          "kind": "p",
+          "text": "Proposed setting: desktop AI-assisted tasks with multiple related steps, saveable intermediate artifacts, changing goals or conditions, and opportunities to review the changes."
+        },
+        {
+          "kind": "p",
+          "text": "Example materials: organizing design research, comparing concepts and revising a design report."
+        },
+        {
+          "kind": "p",
+          "text": "Formative research will establish the final setting and materials. Sample size will depend on research aims, pilot findings and the requirements of the evaluation."
+        }
+      ]
+    },
+    {
+      "title": "Identifying difficulties in practice",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Proposed methods: interviews and retrospective task walkthroughs."
+        },
+        {
+          "kind": "p",
+          "text": "Participants will show an actual instance of AI use. The walkthrough will ask which requirement changed, what they believed needed updating, how they requested the changes, how they checked whether the work was complete, and what was missed or changed unexpectedly."
+        },
+        {
+          "kind": "p",
+          "text": "Data sources: interviews, conversation logs shared with consent, versions of outputs and participants’ recollections of their actions."
+        },
+        {
+          "kind": "p",
+          "text": "Rationale: identify actual difficulties, existing user strategies and task relationships so the study is grounded in practice."
+        },
+        {
+          "kind": "p",
+          "text": "Expected outputs: a classification of intervention events, representative task materials and a list of information needs."
+        }
+      ]
+    },
+    {
+      "title": "Developing the interaction design",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Proposed methods: co-design and iterative prototyping."
+        },
+        {
+          "kind": "p",
+          "text": "Design basis: use observed difficulties, strategies and information needs to decide what to show and which actions to support. A node graph is one candidate, and other representations remain open."
+        },
+        {
+          "kind": "p",
+          "text": "Organizing content: explore how to organize goals, constraints, materials, steps and outputs, and determine which objects and sources need to be visible."
+        },
+        {
+          "kind": "p",
+          "text": "Relationships and states: explore how to show execution order, data dependencies and the scope of constraints. Test whether states such as “currently valid,” “needs verification” and “updated” help users make judgments."
+        },
+        {
+          "kind": "p",
+          "text": "Proposed workflow: browse the task → select an object → inspect relationships → propose a change → check the impact → continue execution → verify changes. Refine the workflow through co-design and trials."
+        },
+        {
+          "kind": "p",
+          "text": "Evidence for verification: explore how to show source passages, operation records, versions and differences before and after a change, so users can inspect both the system’s proposed scope and actual execution."
+        },
+        {
+          "kind": "p",
+          "text": "Rationale: translate formative findings into an actionable design and iteratively test whether users can understand the representation, judge scope and verify results."
+        },
+        {
+          "kind": "p",
+          "text": "Expected outputs: an information structure, state rules, an interaction flow and a testable prototype."
+        },
+        {
+          "kind": "note",
+          "text": "Scope of the mechanism: display task structures that can be recorded, without claiming access to the model’s internal reasoning. Dependency links indicate possible impact; some downstream work may remain valid. Prototype features will be chosen to address the research questions."
+        }
+      ]
+    },
+    {
+      "title": "Testing scope judgments",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Addresses RQ1. Compare a linear to-do list with a node-based dependency graph."
+        },
+        {
+          "kind": "p",
+          "text": "Hold constant the task information, step content, accessible relationship information, editing and previews. Provide relationship descriptions in the linear condition so the comparison isolates how the information is represented."
+        },
+        {
+          "kind": "p",
+          "text": "Participant task: identify direct change targets, affected downstream steps and outputs to preserve."
+        },
+        {
+          "kind": "p",
+          "text": "Measures: judgment accuracy, omission rate, false selection rate, completion time and perceived workload."
+        },
+        {
+          "kind": "p",
+          "text": "Rationale: isolate the effect of representation as far as possible while keeping functionality constant."
+        },
+        {
+          "kind": "p",
+          "text": "Use explicit task rules and materials to establish the answer key. Treat items with reasonable disagreement separately."
+        }
+      ]
+    },
+    {
+      "title": "Testing outcome verification",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Addresses RQ2. Compare standard version viewing with explicit annotations of changes and relationships. Both conditions give access to the same versions and records."
+        },
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "Situation",
+              "Operational definition"
+            ],
+            [
+              "Missed change",
+              "An item that should have been updated was not updated as requested"
+            ],
+            [
+              "Out-of-scope change",
+              "An item that should have stayed the same was changed"
+            ],
+            [
+              "Unnecessary re-execution",
+              "An operation was repeated even though task rules and verification needs did not require it"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "Measures: issue detection rate, false alarm rate, time to locate an issue, verification accuracy, success of subsequent corrections and perceived workload."
+        },
+        {
+          "kind": "p",
+          "text": "Rationale: directly test how the presentation of changes helps users compare intended and actual changes."
+        },
+        {
+          "kind": "note",
+          "text": "Judgment boundary: an unchanged artifact by itself cannot show that repeating a step was unnecessary. Required verification steps should be excluded from the unnecessary-repetition measure."
+        }
+      ]
+    },
+    {
+      "title": "Analysis and research quality",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Qualitative analysis: code interviews and walkthroughs to identify triggers → evidence for judgments → intervention actions → verification strategies → difficulties."
+        },
+        {
+          "kind": "p",
+          "text": "Quantitative analysis: compare judgment, error detection and task performance across presentations, reporting differences, effect sizes and uncertainty. Select statistical methods based on the design and the distribution of the data."
+        },
+        {
+          "kind": "p",
+          "text": "Quality controls: pilot task difficulty, balance the order of tasks and conditions, record experience with AI, define judgment criteria, control information quantity and functionality, and anonymize conversations and outputs."
+        },
+        {
+          "kind": "p",
+          "text": "Use trust as a secondary measure alongside actual accuracy to assess whether reliance is appropriate."
+        }
+      ]
+    },
+    {
+      "title": "Expected contributions and next steps",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "Review contribution: connect research on information organization, process provenance, user intervention and task evolution, clarifying existing capabilities and limits of evidence."
+        },
+        {
+          "kind": "p",
+          "text": "Theoretical contribution: propose and refine an analytical framework linking changing conditions, dependency judgments, scope confirmation and verification of execution."
+        },
+        {
+          "kind": "p",
+          "text": "Design and practice: propose visualization principles for local intervention, preserving outputs and verifying changes, to inform AI task plug-ins."
+        },
+        {
+          "kind": "p",
+          "text": "Next steps: extend the review → conduct formative research → co-design → iterate prototypes → run controlled evaluations → conduct field trials."
+        },
+        {
+          "kind": "p",
+          "text": "The guiding question is how to help users decide what to change when task conditions shift and check whether the change was carried out correctly."
+        }
+      ]
+    }
+  ],
+  "references": {
+    "title": "References",
+    "blocks": [
+      {
+        "kind": "p",
+        "text": "The 16 works cited in the text are listed with authors, original titles, publication details and links. Chinese titles in the Chinese edition are reading aids. Items 8 and 16 are preprints, and item 11 is a foundational theoretical work. DRS references follow the official recommended citations, using proceedings details."
+      },
+      {
+        "kind": "ref",
+        "citation": "[1] Wang, Lei; Ma, Chen; Feng, Xueyang; Zhang, Zeyu; Yang, Hao; Zhang, Jingsen; Chen, Zhiyuan; Tang, Jiakai; Chen, Xu; Lin, Yankai; Zhao, Wayne Xin; Wei, Zhewei; Wen, Jirong. A survey on large language model based autonomous agents[J]. Frontiers of Computer Science, 2024, 18(6): 186345. DOI: 10.1007/s11704-024-40231-1.",
+        "url": "https://doi.org/10.1007/s11704-024-40231-1"
+      },
+      {
+        "kind": "ref",
+        "citation": "[2] Liu, Nelson F.; Lin, Kevin; Hewitt, John; Paranjape, Ashwin; Bevilacqua, Michele; Petroni, Fabio; Liang, Percy. Lost in the Middle: How Language Models Use Long Contexts[J]. Transactions of the Association for Computational Linguistics, 2024, 12: 157-173. DOI: 10.1162/tacl_a_00638.",
+        "url": "https://doi.org/10.1162/tacl_a_00638"
+      },
+      {
+        "kind": "ref",
+        "citation": "[3] Yu, Kexin; Xiao, Yi; Li, Mengjie; Yu, Sisi; Yang, Yulu; Guo, Xinyu; Zhang, Wei; Yuan, Xiang. Design for AI-Integrated Design Team Collaboration: A Strategy and Exploration Using Node Flow in Establishing a Reusable Representation of Knowledge in the Collaborative Process[C]//Gray, C.; Ciliotta Chehade, E.; Hekkert, P.; Forlano, L.; Ciuccarelli, P.; Lloyd, P. (eds.). DRS2024: Boston. Boston, USA, 23–28 June 2024. Design Research Society, 2024. DOI: 10.21606/drs.2024.985.",
+        "url": "https://doi.org/10.21606/drs.2024.985"
+      },
+      {
+        "kind": "ref",
+        "citation": "[4] Zhang, Shunan; Xiao, YI. Designing for Node-Based AI Tools: An Analysis and Synthesis of Design Principles[C]//Simeone, L.; Gray, C. M.; Verhoeven, A.; de Götzen, A.; Bakırlıoğlu, Y.; Zohar, H.; Stead, M.; Buwert, P. (eds.). DRS2026: Edinburgh. Edinburgh, United Kingdom, 8–12 June 2026. Design Research Society, 2026. DOI: 10.21606/drs.2026.1148.",
+        "url": "https://doi.org/10.21606/drs.2026.1148"
+      },
+      {
+        "kind": "ref",
+        "citation": "[5] Suh, Sangho; Min, Bryan; Palani, Srishti; Xia, Haijun. Sensecape: Enabling Multilevel Exploration and Sensemaking with Large Language Models[C]//Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology. San Francisco, CA, USA, 29 October–1 November 2023. New York: Association for Computing Machinery, 2023: 1-18. DOI: 10.1145/3586183.3606756.",
+        "url": "https://doi.org/10.1145/3586183.3606756"
+      },
+      {
+        "kind": "ref",
+        "citation": "[6] Wu, Tongshuang; Terry, Michael; Cai, Carrie Jun. AI Chains: Transparent and Controllable Human-AI Interaction by Chaining Large Language Model Prompts[C]//CHI Conference on Human Factors in Computing Systems. New Orleans, LA, USA, 29 April–5 May 2022. New York: Association for Computing Machinery, 2022: 1-22. DOI: 10.1145/3491102.3517582.",
+        "url": "https://doi.org/10.1145/3491102.3517582"
+      },
+      {
+        "kind": "ref",
+        "citation": "[7] Epperson, Will; Bansal, Gagan; Dibia, Victor C; Fourney, Adam; Gerrits, Jack; Zhu, Erkang (Eric); Amershi, Saleema. Interactive Debugging and Steering of Multi-Agent AI Systems[C]//Proceedings of the 2025 CHI Conference on Human Factors in Computing Systems. Yokohama, Japan, 26 April–1 May 2025. New York: Association for Computing Machinery, 2025: 1-15. DOI: 10.1145/3706598.3713581.",
+        "url": "https://doi.org/10.1145/3706598.3713581"
+      },
+      {
+        "kind": "ref",
+        "citation": "[8] Wu, Zekun; Wang, Xinru; Pang, Rock Yuren; Wang, Chenglong; Feit, Anna Maria. From Review to Reuse: How Post-Task Workflow Can Support Human-AI Agent Interaction[EB/OL]. arXiv:2609.13136v2, 2026. Version 2 updated November 1, 2026. Accessed November 18, 2026. DOI: 10.48550/arXiv.2609.13136.",
+        "url": "https://arxiv.org/abs/2609.13136v2"
+      },
+      {
+        "kind": "ref",
+        "citation": "[9] Ragan, Eric D.; Endert, Alex; Sanyal, Jibonananda; Chen, Jian. Characterizing Provenance in Visualization and Data Analysis: An Organizational Framework of Provenance Types and Purposes[J]. IEEE Transactions on Visualization and Computer Graphics, 2016, 22(1): 31-40. DOI: 10.1109/tvcg.2015.2467551.",
+        "url": "https://doi.org/10.1109/tvcg.2015.2467551"
+      },
+      {
+        "kind": "ref",
+        "citation": "[10] Xu, Kai; Ottley, Alvitta; Walchshofer, Conny; Streit, Marc; Chang, Remco; Wenskovitch, John. Survey on the Analysis of User Interactions and Visualization Provenance[J]. Computer Graphics Forum, 2020, 39(3): 757-783. DOI: 10.1111/cgf.14035.",
+        "url": "https://doi.org/10.1111/cgf.14035"
+      },
+      {
+        "kind": "ref",
+        "citation": "[11] Dorst, Kees; Cross, Nigel. Creativity in the design process: co-evolution of problem–solution[J]. Design Studies, 2001, 22(5): 425-437. DOI: 10.1016/s0142-694x(01)00009-6.",
+        "url": "https://doi.org/10.1016/s0142-694x(01)00009-6"
+      },
+      {
+        "kind": "ref",
+        "citation": "[12] Fang, Cong; Zhu, Yujie; Fang, Le; Long, Yonghao; Lin, Huan; Cong, Yangfan; Wang, Stephen Jia. Generative AI-enhanced human-AI collaborative conceptual design: A systematic literature review[J]. Design Studies, 2025, 97: 101300. DOI: 10.1016/j.destud.2025.101300.",
+        "url": "https://doi.org/10.1016/j.destud.2025.101300"
+      },
+      {
+        "kind": "ref",
+        "citation": "[13] Mohseni, Sina; Zarei, Niloofar; Ragan, Eric D.. A Multidisciplinary Survey and Framework for Design and Evaluation of Explainable AI Systems[J]. ACM Transactions on Interactive Intelligent Systems, 2021, 11(3-4): 1-45. DOI: 10.1145/3387166.",
+        "url": "https://doi.org/10.1145/3387166"
+      },
+      {
+        "kind": "ref",
+        "citation": "[14] Mehrotra, Siddharth; Degachi, Chadha; Vereschak, Oleksandra; Jonker, Catholijn M.; Tielman, Myrthe L.. A Systematic Review on Fostering Appropriate Trust in Human-AI Interaction: Trends, Opportunities and Challenges[J]. ACM Journal on Responsible Computing, 2024, 1(4): 26: 1–45. DOI: 10.1145/3696449.",
+        "url": "https://doi.org/10.1145/3696449"
+      },
+      {
+        "kind": "ref",
+        "citation": "[15] Buçinca, Zana; Malaya, Maja Barbara; Gajos, Krzysztof Z.. To Trust or to Think: Cognitive Forcing Functions Can Reduce Overreliance on AI in AI-assisted Decision-making[J]. Proceedings of the ACM on Human-Computer Interaction, 2021, 5(CSCW1): 188: 1–21. DOI: 10.1145/3449287.",
+        "url": "https://doi.org/10.1145/3449287"
+      },
+      {
+        "kind": "ref",
+        "citation": "[16] Xu, Kai; Mao, YiWei; Guan, XinYi; Feng, ZiLong. Web-Bench: A LLM Code Benchmark Based on Web Standards and Frameworks[EB/OL]. arXiv:2505.07473, 2025. DOI: 10.48550/arXiv.2505.07473.",
+        "url": "https://arxiv.org/abs/2505.07473",
+        "extra": "Case materials: Shopping Mart e-commerce project task file."
+      }
+    ]
+  }
+}

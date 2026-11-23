@@ -27,3 +27,35 @@ MCP 对话使用本地预设剧本。导出段展示设置，实际编辑及套�
 在 WebGL 2 下，以 8 位 RGB 三个通道最大误差不超过 1 为标准，390 × 844 手机校验帧通过比例为 99.92%，高密度手机帧为 99.94%，1360 × 880 桌面帧为 99.93%。390 × 844 校验帧中，只计入与空白底色相差超过 3 级的区域时，通过比例为 99.44%。逐像素完全相等的手机帧像素为 94.39%。WebGL 1 的兼容采样使用不同的抖动序列，手机校验帧通过比例为 97.83%。
 
 原站空白区域的中位色为 #F5F5F7。中心曝光、径向放大及光谱拖尾作用于经过深度测试的纸片图层。页面文字在最终显示分辨率上叠加。已在原型中复测首次进入、滚动及返回首页。
+
+## 第 05 章研究范围
+
+final result: passed
+
+将用户提供的 390 × 844 英文参考图与同尺寸、设备像素比为 1 的本地预览对照。核对双行标题、橙色短线、说明文换行、五个圆的尺寸与颜色、中心圆、连接圆点以及图标与标签对齐。复测修正了右侧文字与屏幕边缘的间距。外侧圆形按参考图出血，标签保持在视口内。图标使用 Lucide 的对应图形，原有概念边界说明保留在关系图之后。
+
+在 Chromium 验证了白色面板从下方覆盖、文字分批上移渐显、固定期间五项依次聚焦和反向切换。补测 320 × 568 英文、390 × 844 中文、1360 × 880 桌面及减少动态效果模式。浏览器模拟触屏滑动通过。鼠标滚轮前进和回退均经过连续中间位置，滚轮可中断点击播放，随后可重新点击进入第 05 章。构建和 15 项自动测试通过。
+
+## Chapter 06 example and English edition
+
+final result: passed
+
+Compared the supplied example with the 410 × 980 local browser view. Matched the split heading, document fan, storefront diagram, question cards, flow arrows, and closing statement. The responsive desktop layout places the four sections in two columns. The original long scenario and its citation remain available under the diagram.
+
+Verified in Chromium that the main heading and deck rise through their masks and all four cards move in from the right. Checked 320 × 568, 410 × 980, 1360 × 880, direct anchors, click playback from chapter 05, the reduced-motion setting, and English content with legacy language parameters. Adjusted narrow flow labels and reserved space for the desktop card fan above the first row. Build and 15 automated tests passed.
+
+## Chapter 06 follow-up and scroll reversal
+
+final result: passed
+
+Compared the supplied 576 × 1344 reference with the local scope and verification follow-up at the same viewport. Checked the four scope categories, risk callout, verification steps and checklist, three failure cards, and cited research gap. The earlier text remains in the scenario and research details disclosure.
+
+Sampled the heading, paper fan, scenario, and verification section on both sides of the same scroll positions. Coordinates and opacity matched in both directions at 320 × 568, 410 × 980, 576 × 1344, and 1360 × 880. The reduced-motion mode presents the content without a reveal. Verified direct links to chapters 07, 08, and 09.
+
+## Literature Map and transition from the example
+
+final result: passed
+
+Compared the 390 × 1429 reference with the local view. Checked both rings of research-paper images, the four lines of inquiry, the relationship diagram, and the synthesis and research-gap panels. The original literature table remains available under the map.
+
+At 320 × 568, 390 × 844, 390 × 1429, and 1360 × 880, Chromium verified that the example text slides down inside fixed masks. All text clears before the paper sequence begins. Sampled the sequence across both rings to confirm that only one paper advances at a time from the right. Checked reverse scrolling, click playback, and reduced motion.

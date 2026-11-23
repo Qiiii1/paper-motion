@@ -1,6 +1,7 @@
 import { makeProgram } from './glProgram';
 import { createOpeningLens } from './openingLens';
 import { papers } from './papers';
+import { publicAsset } from './publicAsset';
 import { COUNT } from './choreography';
 
 const vertex = `
@@ -64,7 +65,7 @@ export function loadPages() {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('Paper unavailable: ' + slug));
-    img.src = '/papers/' + slug + '.png';
+    img.src = publicAsset('papers/' + slug + '.png');
   })));
 }
 

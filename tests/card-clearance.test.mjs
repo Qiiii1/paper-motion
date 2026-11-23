@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Euler, Matrix3, Matrix4, Vector3 } from 'three';
 import { OBB } from 'three/addons/math/OBB.js';
-import { cardPose, COUNT } from '../src/choreography.js';
+import { cardPose, COUNT, focusWheelPose } from '../src/choreography.js';
 import { keepCardsApart } from '../src/cardClearance.js';
 import { galleryPose, presetStop } from '../src/presets.js';
 
@@ -20,8 +20,11 @@ function windVolume(pose) {
 function frame(w,h,t,step) {
   const p=Math.min(step/150,1);
   const extra=Math.max(0,step-150)/30;
+  const wheel=Math.max(0,(p-.64)/.36);
   return Array.from({length:COUNT},(_,i)=>{
-    const original=cardPose(i,p,t,w,h,[1.31,1.20,1.49,1.15,1.65,1.11][i%6],t);
+    const grid=cardPose(i,Math.min(p,.64),t,w,h,[1.31,1.20,1.49,1.15,1.65,1.11][i%6],t,
+      0,0,w*.24);
+    const original=wheel>0 ? focusWheelPose(grid,i,wheel,p===1 ? t : 0,w,h) : grid;
     return extra>0 ? galleryPose(original,i,extra,t,w,h) : original;
   });
 }
@@ -43,6 +46,18 @@ for(const [w,h] of [[320,568],[390,844],[844,390],[1360,880]]) {
     }
   });
 }
+
+test('the research focus wheel settles before the reveal and keeps its cards during a turn',()=>{
+  const w=390,h=844;
+  const wheel=(blend,turn)=>keepCardsApart(Array.from({length:COUNT},(_,i)=>
+    focusWheelPose(cardPose(i,.64,0,w,h,1.32,0),i,blend,turn,w,h))).filter(p=>p[6]>.25);
+  const settled=wheel(.98,0), endpoint=wheel(1,0), turned=wheel(1,Math.PI*.72);
+  assert.deepEqual(settled,endpoint);
+  assert.equal(settled.length,15);
+  assert.equal(turned.length,settled.length);
+  assert.ok(settled.every(p=>p[0]<0) && turned.every(p=>p[0]<0));
+  assert.ok(turned.some((p,i)=>Math.abs(p[1]-settled[i][1])>h*.1));
+});
 
 test('settled presets keep their designed footprints during a full turn',()=>{
   for(let preset=0;preset<7;preset++) {

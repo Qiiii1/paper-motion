@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {cardPose,COUNT} from '../src/choreography.js';
+import {keepCardsApart} from '../src/cardClearance.js';
 
 const w=390,h=844;
 const pose=(i,p,t=0,x=0)=>cardPose(i,p,t,w,h,1.32,t,x);
@@ -36,6 +37,30 @@ test('the settled grid is time-invariant and pans evenly in screen pixels',()=>{
     const moved=pose(i,.64,8,1);
     assert.deepEqual(grid.slice(1),moved.slice(1));
     assert.ok(Math.abs((moved[0]-grid[0])/(1-grid[2]/(h*1.65))-w*.12)<1e-6);
+  }
+});
+
+test('scrolling the grid slides adjacent rows along their projected diagonals',()=>{
+  for(const [width,height] of [[390,844],[555,823],[1360,880]]){
+    const camera=Math.max(width,height)*1.65;
+    const grid=travel=>keepCardsApart(Array.from({length:COUNT},(_,i)=>
+      cardPose(i,.64,0,width,height,1.32,0,0,0,travel)));
+    const project=([x,y,z])=>[x,y].map(value=>value/(1-z/camera));
+    const start=grid(0);
+    let previous=start;
+    for(const distance of [.06,.12,.24]){
+      const current=grid(width*distance);
+      for(const [i,card] of current.entries()){
+        const direction=Math.floor(i/7)%2 ? -1 : 1;
+        const [x,y]=project(card), [px,py]=project(previous[i]);
+        assert.ok(direction*(x-px)>0 && direction*(y-py)<0);
+        assert.deepEqual(card.slice(3),start[i].slice(3));
+        const [sx,sy]=project(start[i]);
+        const [nx,ny]=project(start[i%7===0 ? i+1 : i-1]);
+        assert.ok(Math.abs((x-sx)*(ny-sy)-(y-sy)*(nx-sx))<1e-7);
+      }
+      previous=current;
+    }
   }
 });
 

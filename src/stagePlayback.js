@@ -1,148 +1,186 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { openingScreens, presets, presetStop } from './presets';
+import { pageY, reducedMotion } from './research';
+import { createSmoothWheel } from './smoothWheel';
 
-const chapters = [
-  ['studio',[.07,.273,.505,.679,.98]],
-  ['distort',[.12,.34,.59,.84]],
-  ['mcp',[.05,.29,.49,.68,.87]],
-  ['devices',[.05,.33,.57,.88]],
-  ['formats',[.08,.25,.42,.58,.75,.92]],
-];
+export function useStagePlayback(track) {
+  const controls = useRef(null);
+  const [active, setActive] = useState('opening');
+  const [playing, setPlaying] = useState(false);
+  const step = useCallback(direction => controls.current?.step(direction), []);
+  const jump = useCallback(id => controls.current?.jump(id), []);
 
-function stageStops() {
-  const height=document.querySelector('.stage').clientHeight;
-  const stops=[0,.30,.64,1].map(p=>p*openingScreens*height);
-  for(let i=0;i<presets.length;i++) stops.push((openingScreens+presetStop(i))*height);
-  stops.push((openingScreens+5.76)*height);
-  for(const [id,steps] of chapters) {
-    const el=document.getElementById(id);
-    const top=el.getBoundingClientRect().top+window.scrollY;
-    const span=el.offsetHeight-el.firstElementChild.offsetHeight;
-    for(const p of steps) stops.push(top+p*span);
-  }
-  stops.push(document.getElementById('pricing').getBoundingClientRect().top+window.scrollY);
-  return stops;
-}
+  useEffect(() => {
+    const root = track.current;
+    const smoothWheel = createSmoothWheel();
+    const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+    let stops, frame = 0, run = null, down = null, dragged = false;
 
-export function useStagePlayback() {
-  const run=useRef(null);
-  const [position,setPosition]=useState({index:0,managed:true});
-  const [playing,setPlaying]=useState(false);
-  const command=useRef(null);
-  const step=useCallback((direction=1)=>command.current?.(direction),[]);
-  useEffect(()=>{
-    let stops=stageStops(), frame=0, down=null, dragged=false, playbackY=0;
-    const media=matchMedia('(prefers-reduced-motion: reduce)');
-    function isManaged(y) {
-      return y<stops.at(-1)-2;
-    }
-    function sync() {
-      const y=window.scrollY;
-      const managed=isManaged(y);
-      const index=stops.findLastIndex(at=>at<=y+2);
-      setPosition(old=>old.index===index && old.managed===managed?old:{index,managed});
-    }
-    function cancel() {
-      cancelAnimationFrame(frame); run.current=null; setPlaying(false);
-    }
-    function onScroll() {
-      // Native scrolling, including dragging the scrollbar, can take over
-      // from the animation. Its own scroll events leave playback running.
-      if(run.current && window.scrollY!==playbackY) cancel();
+    function measure() {
+      const next = [...root.querySelectorAll('[data-chapter]')].map(node => ({ node, at: pageY(node) }));
+      if (run && next.some((stop, i) => Math.abs(stop.at - stops[i].at) > 1)) cancel();
+      stops = next;
       sync();
     }
-    function onWheel(event) {
-      if(run.current && event.deltaY && !event.ctrlKey) cancel();
+
+    function sync() {
+      const current = stops.findLastIndex(stop => stop.at <= window.scrollY + 4);
+      setActive(stops[Math.max(0, current)].node.id);
     }
+
+    function cancel() {
+      cancelAnimationFrame(frame);
+      run = null;
+      setPlaying(false);
+    }
+
+    function onScroll() {
+      if (run && window.scrollY !== run.expected) cancel();
+      sync();
+    }
+
     function render(now) {
-      if(window.scrollY!==playbackY) {
-        cancel(); sync();
+      if (window.scrollY !== run.expected) {
+        cancel();
+        sync();
         return;
       }
-      const {from,to,start,duration}=run.current;
-      const f=media.matches?1:Math.min(1,(now-start)/duration);
-      const eased=f*f*(3-2*f);
-      window.scrollTo({top:from+(stops[to]-from)*eased,behavior:'instant'});
-      playbackY=window.scrollY;
-      if(f<1) frame=requestAnimationFrame(render);
-      else {cancel();sync()}
-    }
-    function advance(direction=1) {
-      const from=window.scrollY;
-      if(run.current || !isManaged(from)) return;
-      const to=direction>0?stops.findIndex(at=>at>from+2):stops.findLastIndex(at=>at<from-2);
-      if(to<0) return;
-      const openingDurations=[0,1650,3000,2550];
-      const duration=openingDurations[Math.max(0,to+(direction<0?1:0))] || 1000;
-      playbackY=from;
-      run.current={from,to,start:performance.now(),duration};
-      setPlaying(true); render(performance.now());
-    }
-    function pointerDown(event) {
-      down=[event.clientX,event.clientY]; dragged=false;
-    }
-    function pointerMove(event) {
-      if(down && Math.hypot(event.clientX-down[0],event.clientY-down[1])>8) dragged=true;
-    }
-    function pointerEnd() { down=null }
-    function pointerCancel(event) {
-      pointerEnd();
-      if(event.pointerType==='touch' && run.current) cancel();
-    }
-    function click(event) {
-      if(event.detail>0 && dragged) return;
-      if(event.defaultPrevented || event.target.closest('button,a,input,select,textarea,label,[contenteditable="true"]')) return;
-      if(window.getSelection()?.toString()) return;
-      advance();
-    }
-    function key(event) {
-      if(event.defaultPrevented || event.repeat || event.altKey || event.metaKey || event.ctrlKey ||
-        !isManaged(window.scrollY) ||
-        event.target.closest('input,select,textarea,[contenteditable="true"]')) return;
-      if(event.target.closest('button,a') && [' ','Enter'].includes(event.key)) return;
-      if([' ','Enter','ArrowRight','ArrowDown','PageDown','ArrowLeft','ArrowUp','PageUp'].includes(event.key)) {
-        event.preventDefault();
-        advance(['ArrowLeft','ArrowUp','PageUp'].includes(event.key)?-1:1);
+      const elapsed = Math.min(1, (now - run.started) / run.duration);
+      const eased = elapsed * elapsed * (3 - 2 * elapsed);
+      window.scrollTo({ top: run.from + (run.to - run.from) * eased, behavior: 'instant' });
+      run.expected = window.scrollY;
+      if (elapsed < 1) frame = requestAnimationFrame(render);
+      else if (run.transition) {
+        const { to, duration } = run.transition;
+        run = { from: run.expected, to, duration, expected: run.expected, started: now };
+        frame = requestAnimationFrame(render);
+      }
+      else {
+        cancel();
+        sync();
       }
     }
-    function resize() {
-      const old=stops;
-      stops=stageStops();
-      const index=old.findIndex(y=>Math.abs(window.scrollY-y)<3);
-      if(!run.current && index>=0) window.scrollTo({top:stops[index],behavior:'instant'});
+
+    function advance(direction) {
+      if (run) return;
+      smoothWheel.cancel();
+      const from = window.scrollY;
+      const current = Math.max(0, stops.findLastIndex(stop => stop.at <= from + 4));
+      const target = stops[current + direction];
+      if (!target) return;
+      const to = pageY(target.node);
+      if (reducedMotion()) {
+        window.scrollTo({ top: to, behavior: 'instant' });
+        sync();
+        return;
+      }
+      const runway = target.node.previousElementSibling;
+      const firstStop = direction > 0 && target.node.id !== 'chapter-02' && runway?.matches('.motion-runway')
+        ? pageY(runway) : to;
+      const transitionTime = target.node.id === 'chapter-03' ? 1800 : 1360;
+      const separateTransition = firstStop > from + 24 && firstStop < to - 24;
+      const destination = separateTransition ? firstStop : to;
+      const distance = Math.abs(destination - from) / window.innerHeight;
+      const duration = target.node.hasAttribute('data-motion') && !separateTransition
+        ? Math.min(1800, 940 + distance * 300)
+        : Math.min(720, 380 + distance * 125);
+      run = {
+        from, to: destination, duration, expected: from, started: performance.now(),
+        transition: separateTransition ? { to, duration: transitionTime } : null,
+      };
+      setPlaying(true);
+      frame = requestAnimationFrame(render);
+    }
+
+    function direct(id) {
+      const stop = stops.find(entry => entry.node.id === id);
+      if (!stop) return;
+      cancel();
+      smoothWheel.cancel();
+      const url = new URL(location.href);
+      url.hash = id;
+      history.replaceState(null, '', url);
+      stop.node.querySelector('h2')?.focus({ preventScroll: true });
+      window.scrollTo({ top: pageY(stop.node), behavior: 'auto' });
       sync();
     }
-    // Direct links and the chapter's own controls own their navigation.
-    function control(event) {
-      if(event.target.closest('a,button,input') && !event.target.closest('[data-playback]')) cancel();
+
+    function pointerDown(event) {
+      smoothWheel.cancel();
+      down = [event.clientX, event.clientY];
+      dragged = false;
     }
-    command.current=advance;
-    sync();
-    const observer=new ResizeObserver(resize);
-    observer.observe(document.querySelector('.stage'));
-    window.addEventListener('scroll',onScroll,{passive:true});
-    window.addEventListener('wheel',onWheel,{passive:true});
-    window.addEventListener('pointerdown',pointerDown);
-    window.addEventListener('pointermove',pointerMove);
-    window.addEventListener('pointerup',pointerEnd);
-    window.addEventListener('pointercancel',pointerCancel);
-    window.addEventListener('click',click);
-    window.addEventListener('click',control,true);
-    window.addEventListener('keydown',key);
-    window.addEventListener('hashchange',cancel);
-    return ()=>{
-      cancelAnimationFrame(frame);run.current=null;command.current=null;observer.disconnect();
-      window.removeEventListener('scroll',onScroll);
-      window.removeEventListener('wheel',onWheel);
-      window.removeEventListener('pointerdown',pointerDown);
-      window.removeEventListener('pointermove',pointerMove);
-      window.removeEventListener('pointerup',pointerEnd);
-      window.removeEventListener('pointercancel',pointerCancel);
-      window.removeEventListener('click',click);
-      window.removeEventListener('click',control,true);
-      window.removeEventListener('keydown',key);
-      window.removeEventListener('hashchange',cancel);
+
+    function pointerMove(event) {
+      if (down && Math.hypot(event.clientX - down[0], event.clientY - down[1]) > 8) dragged = true;
+    }
+
+    function pointerEnd() {
+      down = null;
+    }
+
+    function wheel(event) {
+      if (run && event.deltaY && !event.ctrlKey) cancel();
+      if (!motionPreference.matches) smoothWheel.move(event);
+    }
+
+    motionPreference.addEventListener('change', smoothWheel.cancel);
+
+    function pointerCancel(event) {
+      pointerEnd();
+      if (run && event.pointerType === 'touch') cancel();
+    }
+
+    function click(event) {
+      if (event.defaultPrevented || event.target.closest('a,button,select,label,summary')) return;
+      if (!event.target.closest('[data-play-surface]') || (event.detail > 0 && dragged)) return;
+      if (!window.getSelection()?.toString()) advance(1);
+    }
+
+    function control(event) {
+      if (run && event.target.closest('a,button,select,label,summary') && !event.target.closest('[data-playback]')) cancel();
+    }
+
+    function key(event) {
+      if (event.defaultPrevented || event.altKey || event.metaKey || event.ctrlKey) return;
+      if (event.target.closest('button,a,input,select,textarea,summary,[contenteditable]')) return;
+      if (!['ArrowRight', 'ArrowLeft'].includes(event.key)) return;
+      event.preventDefault();
+      advance(event.key === 'ArrowLeft' ? -1 : 1);
+    }
+
+    controls.current = { step: advance, jump: direct };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(root);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('wheel', wheel, { passive: false });
+    window.addEventListener('pointerdown', pointerDown);
+    window.addEventListener('pointermove', pointerMove);
+    window.addEventListener('pointerup', pointerEnd);
+    window.addEventListener('pointercancel', pointerCancel);
+    window.addEventListener('click', click);
+    window.addEventListener('click', control, true);
+    window.addEventListener('keydown', key);
+    window.addEventListener('hashchange', cancel);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      smoothWheel.cancel();
+      motionPreference.removeEventListener('change', smoothWheel.cancel);
+      controls.current = null;
+      observer.disconnect();
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('wheel', wheel);
+      window.removeEventListener('pointerdown', pointerDown);
+      window.removeEventListener('pointermove', pointerMove);
+      window.removeEventListener('pointerup', pointerEnd);
+      window.removeEventListener('pointercancel', pointerCancel);
+      window.removeEventListener('click', click);
+      window.removeEventListener('click', control, true);
+      window.removeEventListener('keydown', key);
+      window.removeEventListener('hashchange', cancel);
     };
-  },[]);
-  return {...position,step,playing};
+  }, [track]);
+
+  return { active, playing, step, jump };
 }

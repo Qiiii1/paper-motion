@@ -29,7 +29,53 @@ function onRing(angle,radius,width,cy,pitch,roll,radial,bend) {
 const pickup = [33,25,32,18,17,24,10,23,9,16];
 const gateAngle = 2.56; // right of centre, behind the axle
 
-export function cardPose(i,p,time,w,h,aspect,flightTime,pointerX=0) {
+// Collect sheets from the lower left of the grid into two concentric orbits.
+// Each paper keeps the same angular slot as the wheel turns.
+const focusOuter = [23,25,33,39,40,32,17,9];
+const focusInner = [16,24,26,31,38,18,10];
+
+export function focusWheelPose(grid, i, blend, turn, w, h) {
+  const outerSlot = focusOuter.indexOf(i);
+  const inner = outerSlot < 0;
+  const slot = inner ? focusInner.indexOf(i) : outerSlot;
+  const base = Math.min(w,h);
+
+  if (slot < 0) {
+    const exit = ease(.04 + .08*(i%7)/6,.64,blend);
+    const size = 1-ease(.16,1,exit);
+    const sheet = grid.slice();
+    sheet[0] += exit*w*.40;
+    sheet[1] -= exit*h*.52;
+    sheet[2] -= exit*base*.30;
+    sheet[6] *= size;
+    sheet[9] *= size;
+    return sheet;
+  }
+
+  const count = inner ? focusInner.length : focusOuter.length;
+  const start = .24*slot/(count-1) + (inner ? .08 : 0);
+  const join = ease(start,start+.65,blend);
+  const radius = inner ? .48 : 1;
+  const angle = turn + TAU*slot/count + (inner ? .11 : 0);
+  const centerX = w < 680 ? -.56*w : -.35*w;
+  const width = Math.min(.248*w,.147*h)*(inner ? .53 : 1);
+  const roll = angle - Math.PI/2;
+  const target = [
+    centerX + Math.min(.405*w,.34*h)*radius*Math.cos(angle),
+    .005*h + Math.min(.223*h,.56*base)*radius*Math.sin(angle),
+    width*(inner ? -.48 : .14),
+    -.09*Math.cos(angle), .08*Math.sin(angle),
+    grid[5] + Math.atan2(Math.sin(roll-grid[5]),Math.cos(roll-grid[5])),
+    width, .017, 0, width*1.32, 1,
+  ];
+  const sheet = between(grid,target,join);
+  const arc = Math.sin(Math.PI*join);
+  sheet[1] += arc*base*.12;
+  sheet[2] += arc*base*(inner ? -.26 : .22);
+  return sheet;
+}
+
+export function cardPose(i,p,time,w,h,aspect,flightTime,pointerX=0,spin=0,rowTravel=0) {
   const base=Math.min(w,h), small=w<680;
   const flight=(i/COUNT+flightTime*.041+Math.min(p,.04)*.95+.03)%1;
   const angle=i*2.39996+.15*Math.sin(flightTime*.24+i);
@@ -46,15 +92,20 @@ export function cardPose(i,p,time,w,h,aspect,flightTime,pointerX=0) {
   // has rotated to the gate, so the left half keeps feeding the wheel.
   const feed=Math.max(0,Math.min(1,(p-.31)/.20));
   const slot=i/COUNT;
-  const a=gateAngle+TAU*Math.max(0,slot-feed);
+  // The research pathway turns the assembled wheel on its axle. The same
+  // offset carries into the exit so the mouth stays where the wheel left it.
+  const turn=spin*1.55;
+  const a=gateAngle+TAU*Math.max(0,slot-feed)+turn;
   const r=base*.395, ringWidth=base*.285;
   const upright=onRing(a,r,ringWidth,0,-.30,0,true,.029);
   if (p<=.31) return between(scattered,upright,gather);
 
-  const col=3-i%7, row=Math.floor(i/7)-2.5;
+  const col=3-i%7, row=Math.floor(i/7);
   const sw=small?w*.292:w*.167;
   const roll=-.52, tilt=.76, yaw=.34;
-  const u=col*sw*1.1, v=row*sw*1.32*1.1;
+  // Translate along the rows in the grid plane before projecting the cards.
+  const u=col*sw*1.1+(row%2 ? -rowTravel : rowTravel);
+  const v=(row-2.5)*sw*1.32*1.1;
   const dx=u*Math.cos(yaw), dy=u*Math.sin(yaw)*Math.sin(tilt)+v*Math.cos(tilt);
   const dz=-u*Math.sin(yaw)*Math.cos(tilt)+v*Math.sin(tilt);
   const pan=pointerX*w*.12*(1-dz/(Math.max(w,h)*1.65));
@@ -64,7 +115,7 @@ export function cardPose(i,p,time,w,h,aspect,flightTime,pointerX=0) {
   const depart=.31+slot*.20;
   const leaving=ease(depart,depart+.129,p);
   if (leaving<1) {
-    const exit=onRing(gateAngle,r,ringWidth,0,-.30,0,true,.029);
+    const exit=onRing(gateAngle+turn,r,ringWidth,0,-.30,0,true,.029);
     // All cards first rise into the same right-rear lane. They fan out to
     // their grid slots only after clearing the outside of the wheel.
     const lane=[exit[0]+base*.16,exit[1]-base*.51,exit[2]-base*.40,

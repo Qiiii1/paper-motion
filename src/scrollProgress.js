@@ -3,3 +3,7 @@ export function followScroll(current, target, seconds, distance) {
   if (Math.abs(target - current) * distance < 0.75) return target;
   return current + (target - current) * (1 - Math.exp(-22 * seconds));
 }
+
+export function viewportProgress(top, height, from, to) {
+  return Math.max(0, Math.min(1, (from - top / height) / (from - to)));
+}

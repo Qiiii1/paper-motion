@@ -7,6 +7,7 @@ export function useScrollScene() {
   const root = useRef(null);
   const [progress,setProgress] = useState(0);
   const [near,setNear] = useState(false);
+  const [{top,bottom},setBounds] = useState({top:0,bottom:Infinity});
   useEffect(()=>{
     const el=root.current;
     const media=matchMedia('(prefers-reduced-motion: reduce)');
@@ -19,6 +20,8 @@ export function useScrollScene() {
       const dt=previousTime===undefined ? 1/60 : Math.min(.055,(now-previousTime)/1000);
       current=now===undefined || media.matches ? target : followScroll(current,target,dt,distance);
       setProgress(current);
+      setBounds(bounds => bounds.top === box.top && bounds.bottom === box.bottom
+        ? bounds : {top:box.top,bottom:box.bottom});
       previousTime=current===target ? undefined : now;
       if(watching && current!==target) queue();
     }
@@ -43,5 +46,5 @@ export function useScrollScene() {
     const y=scrollY+el.getBoundingClientRect().top+value*(el.offsetHeight-el.firstElementChild.offsetHeight);
     window.scrollTo({top:y,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
   }
-  return {root,progress,near,seek};
+  return {root,progress,top,bottom,near,seek};
 }

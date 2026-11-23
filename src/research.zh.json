@@ -1,0 +1,913 @@
+{
+  "title": "AI 长对话中上下文的可视化与偏差修正机制研究",
+  "chapters": [
+    {
+      "title": "研究题目",
+      "blocks": [
+        {
+          "kind": "lead",
+          "text": "从信息回顾到局部干预，再到执行结果核对。"
+        },
+        {
+          "kind": "p",
+          "text": "关键词：长对话、上下文可视化、人机协作、依赖关系、偏差修正。"
+        }
+      ]
+    },
+    {
+      "title": "研究路径",
+      "layout": "approach",
+      "steps": [
+        "真实问题",
+        "相关研究",
+        "比较与述评",
+        "研究缺口",
+        "研究问题",
+        "研究方法"
+      ]
+    },
+    {
+      "title": "研究背景",
+      "layout": "stack"
+    },
+    {
+      "title": "研究定位",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "AI 时代的设计研究。本研究与以下三类设计研究议题相连接。"
+        },
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "议题",
+              "本研究关注的具体问题"
+            ],
+            [
+              "AI 与设计实践",
+              "用户如何理解并调整 AI 参与的任务过程"
+            ],
+            [
+              "设计知识的表达与复用",
+              "目标、约束、资料和成果如何建立可追溯关系"
+            ],
+            [
+              "人的判断与控制",
+              "用户如何决定修改范围、保留已有成果并核对执行结果"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "DRS 中的节点流协作与节点式 AI 工具研究，为知识表达和交互原则提供设计研究参照[3–4]；具体论证同时结合人机交互、可视分析和可解释 AI 文献。"
+        },
+        {
+          "kind": "p",
+          "text": "设计切口：将分散在对话中的任务关系，转化为可检查、可操作的交互对象。"
+        }
+      ]
+    },
+    {
+      "title": "研究范围",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "这里的“上下文”，主要指用户可以理解、检查和修改的任务上下文。"
+        },
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "上下文元素",
+              "含义"
+            ],
+            [
+              "目标",
+              "当前任务希望达成什么"
+            ],
+            [
+              "约束",
+              "必须满足哪些条件"
+            ],
+            [
+              "资料",
+              "使用了哪些输入与证据"
+            ],
+            [
+              "计划",
+              "准备通过哪些步骤完成任务"
+            ],
+            [
+              "成果",
+              "已产生哪些中间或最终产物"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "概念边界：历史对话中存在的信息、界面显示的信息、模型实际采用的信息，三者不必然一致。"
+        }
+      ]
+    },
+    {
+      "title": "条件变化示例",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "案例背景：与 AI 持续开发电商系统。参考 Web-Bench 的 Shopping Mart 电商任务，用户与 AI 逐步完成商城页面、用户注册、订单支付及邀请奖励功能，涉及前端、后端与数据库[16]。"
+        },
+        {
+          "kind": "p",
+          "text": "关联流程：填写邀请码 → 建立邀请关系 → 用户注册 → 首次订单支付 → 发放奖励 → 页面展示。"
+        },
+        {
+          "kind": "p",
+          "text": "条件变化：原规则为“受邀用户注册后发放一笔奖励，首次支付后再发放一笔奖励”；开发推进后，用户调整为："
+        },
+        {
+          "kind": "quote",
+          "text": "“取消注册奖励，仅在受邀用户首次订单支付成功后发放奖励。”"
+        },
+        {
+          "kind": "p",
+          "text": "需要更新：注册环节的奖励逻辑、页面规则说明及相关测试。"
+        },
+        {
+          "kind": "p",
+          "text": "需要核查：首次支付奖励是否仍正常触发，是否存在重复发放。"
+        },
+        {
+          "kind": "p",
+          "text": "可以保留：邀请码、邀请关系，以及不受影响的商品展示与购物车功能。"
+        },
+        {
+          "kind": "p",
+          "text": "核心判断：修改一项业务规则，需要联动更新部分内容，同时保留仍然有效的成果。"
+        }
+      ]
+    },
+    {
+      "title": "受影响内容的定位与核对",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "痛点：需求改在一条消息里，实现却分散在多个模块中。"
+        },
+        {
+          "kind": "p",
+          "text": "“取消注册奖励”的新要求，需要落实到注册处理、奖励记录、页面说明和测试用例。用户难以仅凭 AI 的“已修改完成”，判断是否改全、是否误改。"
+        },
+        {
+          "kind": "p",
+          "text": "用户需要回答：修改了哪项规则？→ 哪些模块使用了它？→ 哪些成果需要更新或保留？"
+        },
+        {
+          "kind": "p",
+          "text": "可视化与介入流程：查看规则与模块关联 → 选择修改范围 → 预览调整 → AI 继续执行 → 核对前后变化。"
+        },
+        {
+          "kind": "p",
+          "text": "漏改：页面说明已经更新，注册后却仍然发放奖励。"
+        },
+        {
+          "kind": "p",
+          "text": "越范围改动：取消注册奖励时，连首次支付奖励也被删除。"
+        },
+        {
+          "kind": "p",
+          "text": "不必要的重复执行：邀请码或已有邀请关系被重新生成。"
+        },
+        {
+          "kind": "p",
+          "text": "研究切口：帮助用户在修改前判断影响范围，在修改后核对实际结果。"
+        },
+        {
+          "kind": "note",
+          "text": "案例说明：电商任务与原始奖励机制来自 Web-Bench 公开材料；持续对话中的规则调整及上述错误情境为本研究拟定的机制示例，不代表原论文已观察到的结果。Web-Bench 为预印本，其连续开发任务不等同于真实用户长对话实验。"
+        }
+      ]
+    },
+    {
+      "title": "修改范围的界定",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "用户提出修改后，通常还需要判断："
+        },
+        {
+          "kind": "p",
+          "text": "直接修改哪个对象？"
+        },
+        {
+          "kind": "p",
+          "text": "哪些下游步骤需要重新处理？"
+        },
+        {
+          "kind": "p",
+          "text": "哪些成果应当保留？"
+        },
+        {
+          "kind": "p",
+          "text": "哪些内容只需核查，无须重新生成？"
+        },
+        {
+          "kind": "p",
+          "text": "两种风险：修改不足，旧条件仍然影响后续内容；修改过度，无关内容被改变，已有有效成果被覆盖。"
+        },
+        {
+          "kind": "p",
+          "text": "关键词：局部修改、影响范围、成果保留。"
+        }
+      ]
+    },
+    {
+      "title": "修改结果的核对",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "智能体回答“已修改”，并不足以说明修改已经正确落实。"
+        },
+        {
+          "kind": "p",
+          "text": "用户仍需检查：应修改的内容是否遗漏？是否改变了范围之外的内容？是否执行了缺少必要性的重复操作？修改后的成果是否符合新条件？"
+        },
+        {
+          "kind": "p",
+          "text": "研究链条：用户想改什么 → 系统实际改了什么 → 两者是否一致。"
+        },
+        {
+          "kind": "p",
+          "text": "相关调试研究已指出，用户在编辑后仍可能难以判断修改是否真正奏效[7]。"
+        }
+      ]
+    },
+    {
+      "title": "四条文献线索",
+      "blocks": [
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "研究线索",
+              "主要关注",
+              "与本研究的关系"
+            ],
+            [
+              "长对话中的信息组织",
+              "对话回顾、主题结构、信息检索",
+              "帮助用户找到相关内容"
+            ],
+            [
+              "AI 输出依据的呈现",
+              "来源、过程记录、可追溯性",
+              "帮助用户检查内容依据"
+            ],
+            [
+              "理解偏差的识别与介入",
+              "中间编辑、反馈、调试与控制",
+              "帮助用户实施修改"
+            ],
+            [
+              "设计任务中的上下文演变",
+              "目标、约束与方案共同变化",
+              "解释为什么修改会持续发生"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "梳理重点：比较不同研究解决了什么问题，以及哪些问题仍然存在。"
+        }
+      ]
+    },
+    {
+      "title": "信息组织研究",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "代表性研究：Sensecape，多层级信息探索与意义建构系统[5]。"
+        },
+        {
+          "kind": "p",
+          "text": "主要思路：将生成内容从线性聊天转为空间中的信息对象；支持主题探索、分组与不同抽象层级之间的切换；帮助用户回顾和组织复杂信息。"
+        },
+        {
+          "kind": "p",
+          "text": "研究启示：把信息变成可操作对象，可以为用户检查任务提供入口。"
+        },
+        {
+          "kind": "p",
+          "text": "证据边界：主题上的关联不等于执行上的依赖。两个内容属于同一主题，并不意味着修改其中一个就必须更新另一个；系统整体效果也不能直接归因于连线本身。"
+        }
+      ]
+    },
+    {
+      "title": "过程记录与依据追溯",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "代表性研究：面向 AI 融合设计团队协作的节点流策略[3]。"
+        },
+        {
+          "kind": "p",
+          "text": "主要思路：通过节点记录提示、操作及输出；通过连线呈现数据流转关系；支持团队理解、分享和复用协作过程。"
+        },
+        {
+          "kind": "p",
+          "text": "研究启示：成果之外，生成过程及其关系也需要被保留。可视分析溯源研究进一步区分了不同记录类型及其使用目的[9–10]。"
+        },
+        {
+          "kind": "p",
+          "text": "尚需回答：过去采用的条件现在是否仍然有效？某处条件改变后，哪些成果受到影响？用户如何检查修改是否落实？"
+        }
+      ]
+    },
+    {
+      "title": "中间过程的编辑与调试",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "代表性研究：AI Chains，可检查与控制的提示链交互[6]；AGDebugger，多智能体系统的交互调试与引导[7]。"
+        },
+        {
+          "kind": "p",
+          "text": "共同思路：显示中间过程 → 定位问题 → 调整输入或步骤 → 再次执行。"
+        },
+        {
+          "kind": "p",
+          "text": "研究启示：用户控制需要深入到任务内部，不能只停留在最终答案的重新生成。"
+        },
+        {
+          "kind": "p",
+          "text": "仍需研究：能够编辑，不代表能够准确判断影响范围；能够重新执行，也不代表容易确认修改效果。提示链与调试系统通常组合多项能力，不能据此单独确认图结构的作用。"
+        }
+      ]
+    },
+    {
+      "title": "图结构的过程表达",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "相关研究：Trace2Flow，任务后回顾与复用工作流研究中的系统，预印本[8]。"
+        },
+        {
+          "kind": "p",
+          "text": "该研究探索将智能体执行过程转化为图结构，以支持理解、检查和后续交互。"
+        },
+        {
+          "kind": "p",
+          "text": "启示：图结构可以帮助用户观察步骤联系；结构性问题的检查与事实性问题的核查需要不同证据；理解过程的改善，不应直接等同于所有任务指标都得到提升。"
+        },
+        {
+          "kind": "p",
+          "text": "待检验：节点与依赖连线究竟改善了哪一种判断？在什么情况下可能增加负担？"
+        },
+        {
+          "kind": "note",
+          "text": "文献状态：按所引用的 arXiv 第 2 版标记为预印本，不将其作为已确认的正式会议论文。"
+        }
+      ]
+    },
+    {
+      "title": "设计任务中的上下文演变",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "设计任务中的目标和方案往往相互影响。问题与方案共同演化研究为此提供基础视角[11]；近期设计综述则将生成式 AI 协作置于概念设计过程之中讨论[12]。"
+        },
+        {
+          "kind": "p",
+          "text": "演变过程：初始问题 → 方案探索 → 发现新约束 → 重新界定问题 → 调整方案。"
+        },
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "情况",
+              "含义"
+            ],
+            [
+              "合理调整",
+              "用户认可的目标、约束或方案变化"
+            ],
+            [
+              "信息失效",
+              "过去有效的信息已不适用于当前阶段"
+            ],
+            [
+              "理解偏差",
+              "系统对用户当前要求的理解与意图不一致"
+            ],
+            [
+              "执行偏差",
+              "已明确的修改没有被正确落实"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "研究重点：支持用户检查变化，区分合理演变与偏差。"
+        }
+      ]
+    },
+    {
+      "title": "既有研究方法",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "以下归纳用于组织文献比较，不代表各类方法的使用频率统计。"
+        },
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "方法",
+              "常见研究对象或材料",
+              "能回答的问题"
+            ],
+            [
+              "访谈与过程回溯",
+              "使用者及其任务记录",
+              "用户在哪里遇到困难、如何应对"
+            ],
+            [
+              "原型与共创",
+              "可视化方案、操作流程",
+              "用户需要哪些信息与控制入口"
+            ],
+            [
+              "对照实验",
+              "相同任务下的不同界面",
+              "不同呈现方式如何影响判断与操作"
+            ],
+            [
+              "日志与产物分析",
+              "对话、工具操作、成果版本",
+              "用户实际做了什么、任务如何变化"
+            ],
+            [
+              "真实场景试用",
+              "持续开展的工作任务",
+              "机制能否融入日常使用"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "方法关系：访谈提供问题线索，设计探索形成可测机制，对照与场景评价检验其作用和适用条件[5–8,13]。"
+        }
+      ]
+    },
+    {
+      "title": "研究能力比较",
+      "blocks": [
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "研究方向",
+              "主要支持的能力",
+              "本研究仍需补充的部分"
+            ],
+            [
+              "信息组织",
+              "浏览、归类、回顾",
+              "从条件变化追踪执行影响"
+            ],
+            [
+              "过程追溯",
+              "查看来源和历史操作",
+              "判断历史信息当前是否适用"
+            ],
+            [
+              "中间编辑",
+              "修改步骤和重新执行",
+              "判断应改与应保留的范围"
+            ],
+            [
+              "图结构表达",
+              "观察步骤及关系",
+              "排除功能差异后检验表达效果"
+            ],
+            [
+              "结果检查",
+              "查看更新后的内容",
+              "对照预期范围核对实际变化"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "拟连接的环节：信息关系 → 干预范围 → 执行核对。"
+        },
+        {
+          "kind": "note",
+          "text": "此表为对相关工作的分析性归纳，不表示每篇论文只具有一项能力。"
+        }
+      ]
+    },
+    {
+      "title": "争议与不足",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "透明度与负担：更多记录可能提供证据，也可能增加阅读和查找成本。解释系统需要结合任务目标与用户评价设计，不能仅凭展示数量判断质量[13]。"
+        },
+        {
+          "kind": "p",
+          "text": "自动化与控制：自动扩展修改范围可能节省操作，也可能改变用户希望保留的内容。"
+        },
+        {
+          "kind": "p",
+          "text": "信任与正确判断：界面看起来清晰，并不保证系统实际执行正确。适当信任需要区分用户的信念、意图与依赖行为[14]；减少过度依赖的机制也可能带来体验上的代价[15]。"
+        },
+        {
+          "kind": "p",
+          "text": "评价目标：用户是否更准确地发现问题、界定范围并核对结果。"
+        }
+      ]
+    },
+    {
+      "title": "研究缺口",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "缺口一：干预范围的判断证据不足。已有系统常同时改变任务拆解、编辑方式与可视化界面，仍需在信息和操作功能一致的条件下，检验节点与依赖连线的作用。"
+        },
+        {
+          "kind": "p",
+          "text": "缺口二：干预前后的核对衔接不足。需要进一步研究，如何将用户预期的修改范围，与后续计划及中间产物的实际变化对应起来。"
+        },
+        {
+          "kind": "p",
+          "text": "研究切口：从看见过程推进到判断改哪里、核对是否改对。"
+        },
+        {
+          "kind": "note",
+          "text": "上述缺口是针对已梳理代表性研究提出的研究判断，需要随文献扩展持续核查，不能据此断言整个领域无人研究。"
+        }
+      ]
+    },
+    {
+      "title": "研究问题",
+      "blocks": [
+        {
+          "kind": "sub",
+          "text": "研究问题一｜干预范围的判断"
+        },
+        {
+          "kind": "p",
+          "text": "在提供相同编辑和预览功能的条件下，与线性待办相比，节点和依赖连线如何影响用户识别直接目标、受影响的下游步骤与应保留的成果？"
+        },
+        {
+          "kind": "sub",
+          "text": "研究问题二｜干预结果的核对"
+        },
+        {
+          "kind": "p",
+          "text": "智能体继续执行后，呈现计划与中间产物的变化，如何影响用户发现漏改、越范围改动和不必要的重复执行？"
+        },
+        {
+          "kind": "p",
+          "text": "逻辑关系：执行前确定预期范围 → 执行后检查实际变化。"
+        }
+      ]
+    },
+    {
+      "title": "研究路径",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "总体路径：真实任务回溯 → 归纳困难与需求 → 形成交互方案 → 对照评估。"
+        },
+        {
+          "kind": "p",
+          "text": "第一阶段：通过访谈与任务过程回溯，确认条件变化后的困难、用户现有策略及信息需求。"
+        },
+        {
+          "kind": "p",
+          "text": "第二阶段：依据前期发现，通过共创与原型迭代形成可视化表达和交互方案。"
+        },
+        {
+          "kind": "p",
+          "text": "第三阶段：分别评估干预范围的判断与干预结果的核对，检验方案的作用及适用条件。"
+        },
+        {
+          "kind": "p",
+          "text": "研究关系：文献与案例提出问题线索，形成性研究核实和细化问题，设计与评估进一步检验交互机制；各阶段结果可用于修订研究问题与方案。"
+        }
+      ]
+    },
+    {
+      "title": "研究对象与场域",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "拟招募对象：使用生成式 AI 开展持续性设计任务，并有修改要求、保留成果和检查结果经验的设计学生或从业者。"
+        },
+        {
+          "kind": "p",
+          "text": "拟研究场域：桌面端 AI 辅助任务，包含多个关联步骤、可保存的中间成果、目标或条件调整，以及修改结果检查。"
+        },
+        {
+          "kind": "p",
+          "text": "任务材料示例：设计调研资料整理、方案比较与设计报告修订。"
+        },
+        {
+          "kind": "p",
+          "text": "先通过形成性研究确定最终场景与材料。参与者数量将结合研究目的、预实验和实验检验需求确定。"
+        }
+      ]
+    },
+    {
+      "title": "真实困难的识别",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "拟采用方法：访谈与任务过程回溯。"
+        },
+        {
+          "kind": "p",
+          "text": "请参与者展示一次真实的 AI 使用经历，重点回溯：哪个要求发生了变化？当时认为哪些内容需要更新？如何告诉 AI 修改？如何判断修改是否完成？有哪些内容被遗漏或意外改变？"
+        },
+        {
+          "kind": "p",
+          "text": "数据来源：访谈、经同意提供的对话记录、成果版本及操作回忆。"
+        },
+        {
+          "kind": "p",
+          "text": "选择理由：识别真实困难、用户现有策略及任务关系，避免仅研究预设问题。"
+        },
+        {
+          "kind": "p",
+          "text": "预期产出：干预事件分类、典型任务材料、信息需求清单。"
+        }
+      ]
+    },
+    {
+      "title": "交互方案的形成",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "拟采用方法：共创与原型迭代。"
+        },
+        {
+          "kind": "p",
+          "text": "设计依据：根据前期研究识别的真实困难、用户策略与信息需求，确定需要呈现的内容和支持的操作，不预先将节点图作为唯一方案。"
+        },
+        {
+          "kind": "p",
+          "text": "内容组织：探索目标、约束、资料、步骤与成果的组织方式，确定哪些对象及其来源需要可见。"
+        },
+        {
+          "kind": "p",
+          "text": "关系与状态：探索执行顺序、数据依赖、约束适用范围的呈现方式，以及当前有效、待核查、已更新等状态是否有助于用户判断。"
+        },
+        {
+          "kind": "p",
+          "text": "交互流程设想：浏览任务 → 选择对象 → 查看关联 → 提出修改 → 检查影响范围 → 继续执行 → 核对变化。具体流程根据共创与试用结果调整。"
+        },
+        {
+          "kind": "p",
+          "text": "核对依据：探索原文来源、操作记录、成果版本及修改前后差异的呈现，支持用户检查系统建议的影响范围和实际执行结果。"
+        },
+        {
+          "kind": "p",
+          "text": "选择理由：将前期研究发现转化为可操作方案，并通过迭代检验用户能否理解相关表达、完成范围判断与结果核对。"
+        },
+        {
+          "kind": "p",
+          "text": "预期产出：信息结构、状态规则、交互流程及可测试原型。"
+        },
+        {
+          "kind": "note",
+          "text": "机制边界：呈现可记录的任务结构，不宣称还原模型内部的真实思维过程；依赖关系指示潜在影响，不意味着所有下游内容均须重算。原型功能以回答研究问题为准。"
+        }
+      ]
+    },
+    {
+      "title": "干预范围判断的检验",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "对应研究问题一。比较线性待办与节点依赖图。"
+        },
+        {
+          "kind": "p",
+          "text": "保持一致：任务信息、步骤内容、可访问的关系信息、编辑功能与预览功能。线性条件也提供关系说明，避免将有无关系信息混入图形表达的比较。"
+        },
+        {
+          "kind": "p",
+          "text": "参与者任务：识别直接修改对象、受影响的下游步骤与应保留的成果。"
+        },
+        {
+          "kind": "p",
+          "text": "评价指标：判断准确率、遗漏率、误选率、完成时间与主观负担。"
+        },
+        {
+          "kind": "p",
+          "text": "选择理由：尽可能区分信息表达方式与额外功能的影响。"
+        },
+        {
+          "kind": "p",
+          "text": "任务标准答案应依据显式规则及材料建立，并对存在合理分歧的内容单独处理。"
+        }
+      ]
+    },
+    {
+      "title": "干预结果核对的检验",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "对应研究问题二。比较常规版本查看与明确标注变化及关联的呈现；两种条件均可访问相同版本和记录。"
+        },
+        {
+          "kind": "table",
+          "rows": [
+            [
+              "情况",
+              "操作性定义"
+            ],
+            [
+              "漏改",
+              "应更新的内容未按要求更新"
+            ],
+            [
+              "越范围改动",
+              "不应改变的内容发生了改变"
+            ],
+            [
+              "不必要的重复执行",
+              "在任务规则及验证需求下无需重做的操作被再次执行"
+            ]
+          ]
+        },
+        {
+          "kind": "p",
+          "text": "评价指标：问题检出率、误报率、定位时间、核对正确率、后续修正成功率与主观负担。"
+        },
+        {
+          "kind": "p",
+          "text": "选择理由：直接检验变化呈现对预期与实际核对的支持作用。"
+        },
+        {
+          "kind": "note",
+          "text": "判定边界：成果没有变化，不能单独证明重复执行没有必要；必要的验证步骤不应算作无效重复。"
+        }
+      ]
+    },
+    {
+      "title": "数据分析与研究质量",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "定性分析：对访谈与回溯材料编码，归纳触发条件 → 判断依据 → 干预行为 → 核对策略 → 遇到的困难。"
+        },
+        {
+          "kind": "p",
+          "text": "定量分析：比较不同呈现条件下的判断、查错和操作表现，报告差异、效应量及不确定性；具体统计方法依据实验设计和数据分布确定。"
+        },
+        {
+          "kind": "p",
+          "text": "研究质量控制：通过预实验检查任务难度；平衡任务与条件顺序；记录 AI 使用经验；明确判断依据；控制信息量与操作功能；对对话及成果材料匿名化处理。"
+        },
+        {
+          "kind": "p",
+          "text": "信任作为辅助指标，结合实际正确率判断是否形成恰当依赖。"
+        }
+      ]
+    },
+    {
+      "title": "预期贡献与后续计划",
+      "blocks": [
+        {
+          "kind": "p",
+          "text": "综述贡献：梳理信息组织、过程追溯、用户介入与任务演变研究之间的联系，明确已有工作的能力与证据边界。"
+        },
+        {
+          "kind": "p",
+          "text": "理论贡献：尝试建立条件变化—依赖判断—范围确认—执行核对的分析框架，并通过研究修订。"
+        },
+        {
+          "kind": "p",
+          "text": "设计与实践启示：提出支持局部干预、成果保留与变化核对的可视化原则，为 AI 任务插件提供依据。"
+        },
+        {
+          "kind": "p",
+          "text": "后续计划：补充文献 → 形成性研究 → 方案共创 → 原型迭代 → 对照评估 → 真实任务试用。"
+        },
+        {
+          "kind": "p",
+          "text": "最终问题：当任务条件发生变化，如何让用户知道改哪里，并能检查是否改对？"
+        }
+      ]
+    }
+  ],
+  "references": {
+    "title": "参考文献",
+    "blocks": [
+      {
+        "kind": "p",
+        "text": "以下列出正文引用的 16 篇文献，包含完整作者、原始题名、发表信息及可点击链接。中文题名为便于阅读的译名，不替代正式题名。第 8、16 项为预印本；第 11 项为基础理论文献。DRS 文献按官方推荐引文著录，不以独立 PDF 的页数替代论文集页码。"
+      },
+      {
+        "kind": "ref",
+        "citation": "[1] Wang, Lei; Ma, Chen; Feng, Xueyang; Zhang, Zeyu; Yang, Hao; Zhang, Jingsen; Chen, Zhiyuan; Tang, Jiakai; Chen, Xu; Lin, Yankai; Zhao, Wayne Xin; Wei, Zhewei; Wen, Jirong. A survey on large language model based autonomous agents[J]. Frontiers of Computer Science, 2024, 18(6): 186345. DOI: 10.1007/s11704-024-40231-1.",
+        "translation": "中文译名：基于大语言模型的自主智能体综述",
+        "url": "https://doi.org/10.1007/s11704-024-40231-1"
+      },
+      {
+        "kind": "ref",
+        "citation": "[2] Liu, Nelson F.; Lin, Kevin; Hewitt, John; Paranjape, Ashwin; Bevilacqua, Michele; Petroni, Fabio; Liang, Percy. Lost in the Middle: How Language Models Use Long Contexts[J]. Transactions of the Association for Computational Linguistics, 2024, 12: 157-173. DOI: 10.1162/tacl_a_00638.",
+        "translation": "中文译名：迷失在中间：语言模型如何使用长上下文",
+        "url": "https://doi.org/10.1162/tacl_a_00638"
+      },
+      {
+        "kind": "ref",
+        "citation": "[3] Yu, Kexin; Xiao, Yi; Li, Mengjie; Yu, Sisi; Yang, Yulu; Guo, Xinyu; Zhang, Wei; Yuan, Xiang. Design for AI-Integrated Design Team Collaboration：A Strategy and Exploration Using Node Flow in Establishing a Reusable Representation of Knowledge in the Collaborative Process[C]//Gray, C.; Ciliotta Chehade, E.; Hekkert, P.; Forlano, L.; Ciuccarelli, P.; Lloyd, P. (eds.). DRS2024: Boston. Boston, USA, 23–28 June 2024. Design Research Society, 2024. DOI: 10.21606/drs.2024.985.",
+        "translation": "中文译名：面向 AI 融合设计团队协作的设计：利用节点流建立协作过程可复用知识表征的策略与探索",
+        "url": "https://doi.org/10.21606/drs.2024.985"
+      },
+      {
+        "kind": "ref",
+        "citation": "[4] Zhang, Shunan; Xiao, YI. Designing for Node-Based AI Tools: An Analysis and Synthesis of Design Principles[C]//Simeone, L.; Gray, C. M.; Verhoeven, A.; de Götzen, A.; Bakırlıoğlu, Y.; Zohar, H.; Stead, M.; Buwert, P. (eds.). DRS2026: Edinburgh. Edinburgh, United Kingdom, 8–12 June 2026. Design Research Society, 2026. DOI: 10.21606/drs.2026.1148.",
+        "translation": "中文译名：面向节点式 AI 工具的设计：设计原则的分析与综合",
+        "url": "https://doi.org/10.21606/drs.2026.1148"
+      },
+      {
+        "kind": "ref",
+        "citation": "[5] Suh, Sangho; Min, Bryan; Palani, Srishti; Xia, Haijun. Sensecape: Enabling Multilevel Exploration and Sensemaking with Large Language Models[C]//Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology. San Francisco, CA, USA, 29 October–1 November 2023. New York: Association for Computing Machinery, 2023: 1-18. DOI: 10.1145/3586183.3606756.",
+        "translation": "中文译名：Sensecape：借助大语言模型支持多层级探索与意义建构",
+        "url": "https://doi.org/10.1145/3586183.3606756"
+      },
+      {
+        "kind": "ref",
+        "citation": "[6] Wu, Tongshuang; Terry, Michael; Cai, Carrie Jun. AI Chains: Transparent and Controllable Human-AI Interaction by Chaining Large Language Model Prompts[C]//CHI Conference on Human Factors in Computing Systems. New Orleans, LA, USA, 29 April–5 May 2022. New York: Association for Computing Machinery, 2022: 1-22. DOI: 10.1145/3491102.3517582.",
+        "translation": "中文译名：AI Chains：通过串联大语言模型提示实现透明且可控的人机交互",
+        "url": "https://doi.org/10.1145/3491102.3517582"
+      },
+      {
+        "kind": "ref",
+        "citation": "[7] Epperson, Will; Bansal, Gagan; Dibia, Victor C; Fourney, Adam; Gerrits, Jack; Zhu, Erkang (Eric); Amershi, Saleema. Interactive Debugging and Steering of Multi-Agent AI Systems[C]//Proceedings of the 2025 CHI Conference on Human Factors in Computing Systems. Yokohama, Japan, 26 April–1 May 2025. New York: Association for Computing Machinery, 2025: 1-15. DOI: 10.1145/3706598.3713581.",
+        "translation": "中文译名：多智能体 AI 系统的交互式调试与引导",
+        "url": "https://doi.org/10.1145/3706598.3713581"
+      },
+      {
+        "kind": "ref",
+        "citation": "[8] Wu, Zekun; Wang, Xinru; Pang, Rock Yuren; Wang, Chenglong; Feit, Anna Maria. From Review to Reuse: How Post-Task Workflow Can Support Human-AI Agent Interaction[EB/OL]. arXiv:2609.13136v2, 2026. 第 2 版更新于 2026-11-01，引用日期 2026-11-18. DOI: 10.48550/arXiv.2609.13136.",
+        "translation": "中文译名：从回顾到复用：任务后工作流如何支持人与 AI 智能体的交互",
+        "url": "https://arxiv.org/abs/2609.13136v2"
+      },
+      {
+        "kind": "ref",
+        "citation": "[9] Ragan, Eric D.; Endert, Alex; Sanyal, Jibonananda; Chen, Jian. Characterizing Provenance in Visualization and Data Analysis: An Organizational Framework of Provenance Types and Purposes[J]. IEEE Transactions on Visualization and Computer Graphics, 2016, 22(1): 31-40. DOI: 10.1109/tvcg.2015.2467551.",
+        "translation": "中文译名：可视化与数据分析中的溯源特征：溯源类型及目的的组织框架",
+        "url": "https://doi.org/10.1109/tvcg.2015.2467551"
+      },
+      {
+        "kind": "ref",
+        "citation": "[10] Xu, Kai; Ottley, Alvitta; Walchshofer, Conny; Streit, Marc; Chang, Remco; Wenskovitch, John. Survey on the Analysis of User Interactions and Visualization Provenance[J]. Computer Graphics Forum, 2020, 39(3): 757-783. DOI: 10.1111/cgf.14035.",
+        "translation": "中文译名：用户交互分析与可视化溯源综述",
+        "url": "https://doi.org/10.1111/cgf.14035"
+      },
+      {
+        "kind": "ref",
+        "citation": "[11] Dorst, Kees; Cross, Nigel. Creativity in the design process: co-evolution of problem–solution[J]. Design Studies, 2001, 22(5): 425-437. DOI: 10.1016/s0142-694x(01)00009-6.",
+        "translation": "中文译名：设计过程中的创造力：问题与方案的共同演化",
+        "url": "https://doi.org/10.1016/s0142-694x(01)00009-6"
+      },
+      {
+        "kind": "ref",
+        "citation": "[12] Fang, Cong; Zhu, Yujie; Fang, Le; Long, Yonghao; Lin, Huan; Cong, Yangfan; Wang, Stephen Jia. Generative AI-enhanced human-AI collaborative conceptual design: A systematic literature review[J]. Design Studies, 2025, 97: 101300. DOI: 10.1016/j.destud.2025.101300.",
+        "translation": "中文译名：生成式 AI 增强的人机协同概念设计：系统性文献综述",
+        "url": "https://doi.org/10.1016/j.destud.2025.101300"
+      },
+      {
+        "kind": "ref",
+        "citation": "[13] Mohseni, Sina; Zarei, Niloofar; Ragan, Eric D.. A Multidisciplinary Survey and Framework for Design and Evaluation of Explainable AI Systems[J]. ACM Transactions on Interactive Intelligent Systems, 2021, 11(3-4): 1-45. DOI: 10.1145/3387166.",
+        "translation": "中文译名：可解释 AI 系统设计与评估的多学科综述及框架",
+        "url": "https://doi.org/10.1145/3387166"
+      },
+      {
+        "kind": "ref",
+        "citation": "[14] Mehrotra, Siddharth; Degachi, Chadha; Vereschak, Oleksandra; Jonker, Catholijn M.; Tielman, Myrthe L.. A Systematic Review on Fostering Appropriate Trust in Human-AI Interaction: Trends, Opportunities and Challenges[J]. ACM Journal on Responsible Computing, 2024, 1(4): 26: 1–45. DOI: 10.1145/3696449.",
+        "translation": "中文译名：促进人机交互中适当信任的系统性综述：趋势、机遇与挑战",
+        "url": "https://doi.org/10.1145/3696449"
+      },
+      {
+        "kind": "ref",
+        "citation": "[15] Buçinca, Zana; Malaya, Maja Barbara; Gajos, Krzysztof Z.. To Trust or to Think: Cognitive Forcing Functions Can Reduce Overreliance on AI in AI-assisted Decision-making[J]. Proceedings of the ACM on Human-Computer Interaction, 2021, 5(CSCW1): 188: 1–21. DOI: 10.1145/3449287.",
+        "translation": "中文译名：信任还是思考：认知强制机制能够减少 AI 辅助决策中的过度依赖",
+        "url": "https://doi.org/10.1145/3449287"
+      },
+      {
+        "kind": "ref",
+        "citation": "[16] Xu, Kai; Mao, YiWei; Guan, XinYi; Feng, ZiLong. Web-Bench: A LLM Code Benchmark Based on Web Standards and Frameworks[EB/OL]. arXiv:2505.07473, 2025. DOI: 10.48550/arXiv.2505.07473.",
+        "translation": "中文译名：Web-Bench：基于 Web 标准与框架的大语言模型代码基准",
+        "url": "https://arxiv.org/abs/2505.07473",
+        "extra": "案例任务材料：Shopping Mart 电商项目任务文件"
+      }
+    ]
+  }
+}
