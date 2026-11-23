@@ -1,8 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+const basePath = process.env.PAGES_BASE_PATH || "/";
+
 export default defineConfig({
-  base: process.env.PAGES_BASE_PATH || "/",
+  base: basePath.endsWith("/") ? basePath : basePath + "/",
   build: {
     outDir: "dist/client",
   },
