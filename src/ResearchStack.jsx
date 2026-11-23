@@ -70,7 +70,7 @@ export function ResearchStack({ id, phase, lang }) {
   return <section id={id} className="research-chapter stack-chapter" ref={root}
     data-chapter data-motion={phase} data-stack data-play-surface aria-labelledby={id + '-title'}>
     <div className="stack-pin">
-      <div className="stack-plate" style={{transform: `translateY(calc(${lift}px + ${exit * 100}% + ${exit * 8}svh))`,
+      <div className="stack-plate" style={{'--stack-lift': lift + 'px', '--stack-exit': exit,
         visibility: exit === 1 ? 'hidden' : undefined, pointerEvents: exit > .5 ? 'none' : undefined}}>
         <h2 id={id + '-title'} tabIndex={-1} className="stack-title">
           {text.title.map(line => <span key={line}>{line}</span>)}

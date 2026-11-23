@@ -6,6 +6,8 @@ import { ResearchApproach } from './ResearchApproach';
 import { ResearchScope } from './ResearchScope';
 import { ResearchExample } from './ResearchExample';
 import { ResearchLiterature } from './ResearchLiterature';
+import { LiteratureCase } from './LiteratureCase';
+import { ResearchPartCover } from './ResearchPartCover';
 
 function Copy({ text }) {
   return text.split(/(\[\d+(?:[–,-]\d+)*\])/g).map((part, index) => {
@@ -121,8 +123,12 @@ export function ResearchChapters({ edition, ui, lang }) {
       const id = chapterId(chapter);
       const phase = motion.get(chapter);
       return <Fragment key={id}>
+        {chapter === 3 && <ResearchPartCover part={1} />}
+        {chapter === 10 && <ResearchPartCover part={2} />}
+        {chapter === 15 && <ResearchPartCover part={3} />}
         {chapter === 20 && <PrototypeSequence lang={lang} />}
-        {phase !== undefined && <div className={'motion-runway runway-' + chapter} data-play-surface aria-hidden="true" />}
+        {phase !== undefined && <div className={'motion-runway runway-' + chapter}
+          data-art-covered={chapter === 10 ? '' : undefined} data-play-surface aria-hidden="true" />}
         {steps
           ? <ResearchApproach id={id} title={title} steps={steps} phase={phase} />
           : layout === 'stack'
@@ -139,11 +145,19 @@ export function ResearchChapters({ edition, ui, lang }) {
             </section>)}
           </ResearchExample>
           : chapter === 10
-          ? <ResearchLiterature id={id} phase={phase}>
-            {blocks.map((block, i) => block.kind === 'table'
-              ? <ResearchTable key={i} rows={block.rows} />
-              : <Paragraph key={i} block={block} />)}
-          </ResearchLiterature>
+          ? <ResearchLiterature id={id} phase={phase} />
+          : chapter >= 11 && chapter <= 13
+          ? <LiteratureCase id={id} index={chapter - 11}>
+            <details className="literature-details">
+              <summary>{chapter === 13 ? 'Study notes and literature comparison' : 'Study notes'}</summary>
+              <div className="chapter-copy">
+                {blocks.map((block, i) => <Paragraph key={i} block={block} />)}
+                {chapter === 13 && edition.chapters[9].blocks.map((block, i) => block.kind === 'table'
+                  ? <ResearchTable key={i} rows={block.rows} />
+                  : <Paragraph key={i} block={block} />)}
+              </div>
+            </details>
+          </LiteratureCase>
           : <section className="research-chapter" id={id} data-chapter data-motion={phase} aria-labelledby={id + '-title'}>
             {phase !== undefined && <div className={'motion-window window-' + chapter} data-play-surface aria-hidden="true" />}
             <div className="reading-panel">

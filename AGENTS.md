@@ -37,3 +37,23 @@ Render the public site in English, including when a legacy language parameter is
 Drive the example reveals by scroll position so upward scrolling retraces the same path. Continue the example with modification scope, result verification, failure cases, and the research gap. Keep the full scenario and research notes available in the details disclosure.
 
 At the end of chapter 06, hold the text masks in place and reverse their entrance. Start chapter 10's paper sequence only after the example text is gone. Feed the sheets one by one through a fixed gate on the right, turning both rings together to bring each slot to the gate. Reveal the Literature Map copy upward through masks.
+
+Give incoming sheets visibly different arcs, tilt, and pace near the visible edge of the Literature Map. Allow enough scroll distance to see each entry. The sheets straighten and converge on the same point and heading before joining the rotating rings.
+
+Place the full-screen Research Background cover after Research Approach and the Related Research cover immediately before Literature Map. Frame moving paper ribbons above a large English title and a pale part number, and keep the next and previous scene controls at the bottom. The Related Research cover clears before the Literature Map cards enter.
+
+Keep the Research Approach text masks fixed while their contents return downward. Continue the existing paper deck through the approach-to-background handoff so the same sheets form the first cover's ribbons.
+
+Rotate the paper ribbons together as the reader scrolls through the Research Background cover, with the same path in reverse when scrolling back.
+
+End Literature Map with Synthesis. Pin the final reading position while the letters descend and fade inside their masks. Then move from a close-up grid of papers into a vertical reel with the supplied Sensecape, Node Flow, and AI Chains pages, in that order. Reveal each case's title and lower text upward through fixed masks and keep the explanations and diagrams editable.
+
+Keep the end of Literature Map close to Synthesis so the paper wall follows without a blank panel. Bend the paper surfaces around the vertical reel as they enter and leave. Place the illustrated Comparison & critique cover (03) after related research and before the comparison chapter.
+
+Use stronger wheel damping through the story so short gestures are easy to stop. Limit queued travel during bursts and clear it when scroll direction reverses. Preserve native touch and explicit page-scroll distances.
+
+Show the uncropped original image with square corners while a paper is foremost, including as papers exchange the front position. Reserve perspective tilt and curl for papers away from the front. Clip focus lens reveals vertically so the outdented third lens stays readable.
+
+Feather the paper artwork into the task-context stack with a broad, eased gradient tied to the moving reading plate. Use Case Study for the e-commerce chapter's main heading.
+
+At the end of Case Study, hold the final reading position while the text descends through its masks. Bring the 02 Related Research cover papers in from above, one sheet after another, until they form the ribbons. Once they settle, reveal the cover title upward inside fixed line masks. On further scroll, lower the letters into those same masks, then send the sheets off the right edge one by one. Keep the fades at both handoffs tight enough that the screen never dwells on an empty frame. As the last cover sheet clears, begin the Literature Map title and the first paper at the same scroll position. Scrub the same sequence in reverse when scrolling back.

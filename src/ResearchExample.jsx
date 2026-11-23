@@ -57,6 +57,14 @@ function Storefront() {
   </div>;
 }
 
+function ExampleFan() {
+  return <div className="example-fan" aria-hidden="true">
+    {fanPapers.map(([slug, tone]) => <span className="example-paper" key={slug} data-tone={tone}>
+      <img src={publicAsset('papers/' + slug + '.png')} alt="" decoding="async" />
+    </span>)}
+  </div>;
+}
+
 function ExampleSection({ id, title, className, children }) {
   return <section id={id} className={`example-section ${className ?? ''}`} data-chapter={id ? '' : undefined} data-example-reveal>
     <div className="example-mask"><h3 className="example-rise" id={id ? id + '-title' : undefined}>{title}</h3></div>
@@ -78,6 +86,7 @@ export function ResearchExample({ id, phase, children }) {
     const progress = new Map();
     let frame = 0;
     let held = 0;
+    let previousExit = 0;
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     function setProgress(element, value) {
       if (progress.get(element) !== value) {
@@ -93,18 +102,19 @@ export function ResearchExample({ id, phase, children }) {
       const layoutHeight = layout.getBoundingClientRect().height;
       const exitSpan = sceneHeight - layoutHeight;
       const hold = motion.matches ? 0 : Math.max(0, Math.min(exitSpan, height - top - layoutHeight));
-      const remaining = exitSpan > 0 ? 1 - hold / exitSpan : 1;
+      const exit = exitSpan > 0 ? hold / exitSpan : 0;
       const correction = hold - held;
-      // Pin the masks while their local entrance progress runs back to zero.
-      const entry = viewportProgress(header.getBoundingClientRect().top + correction, height, .78, .16);
-      const groupProgress = groups.map(group => Math.min(entry, viewportProgress(group.getBoundingClientRect().top + correction, height, 1.01, .79)));
-      if (hold !== held) {
+      const headerCopy = viewportProgress(header.getBoundingClientRect().top + correction, height, .78, .16);
+      const groupProgress = groups.map(group => Math.min(headerCopy,
+        viewportProgress(group.getBoundingClientRect().top + correction, height, 1.01, .79)));
+      if (hold !== held || exit !== previousExit) {
         scene.style.setProperty('--example-hold', hold + 'px');
-        scene.style.setProperty('--example-rewind', remaining);
+        scene.style.setProperty('--example-rewind', 1 - exit * exit);
         scene.toggleAttribute('data-example-exiting', hold > 0);
         held = hold;
+        previousExit = exit;
       }
-      setProgress(header, entry);
+      setProgress(header, headerCopy);
       groups.forEach((group, index) => setProgress(group, groupProgress[index]));
     }
     function queue() {
@@ -128,15 +138,11 @@ export function ResearchExample({ id, phase, children }) {
   return <section id={id} className="research-chapter example-chapter" ref={chapter} data-chapter data-motion={phase}
     data-art-covered data-play-surface aria-labelledby={id + '-title'}>
     <div className="example-layout">
-      <header className="example-header" ref={hero}>
+      <header id="case-study-ready" className="example-header" ref={hero}>
         <div className="example-mask">
-          <h2 className="example-rise" id={id + '-title'} tabIndex={-1}>For Example</h2>
+          <h2 className="example-rise" id={id + '-title'} tabIndex={-1}>Case Study</h2>
         </div>
-        <div className="example-fan" aria-hidden="true">
-          {fanPapers.map(([slug, tone]) => <span className="example-paper" key={slug} data-tone={tone}>
-            <img src={publicAsset('papers/' + slug + '.png')} alt="" decoding="async" />
-          </span>)}
-        </div>
+        <ExampleFan />
         <div className="example-mask example-deck">
           <p className="example-rise">One Rule.<br />Many<br className="example-mobile-break" /> Effects.</p>
         </div>
@@ -240,5 +246,6 @@ export function ResearchExample({ id, phase, children }) {
         </details>
       </div>
     </div>
+    <span id="case-study-exit" className="example-exit-start" aria-hidden="true" />
   </section>;
 }

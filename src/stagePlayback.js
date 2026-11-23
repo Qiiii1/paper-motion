@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { pageY, reducedMotion } from './research';
 import { createSmoothWheel } from './smoothWheel';
+import { APPROACH_COVER_LEAD } from './sectionCoverMotion';
 
 export function useStagePlayback(track) {
   const controls = useRef(null);
@@ -16,7 +17,13 @@ export function useStagePlayback(track) {
     let stops, frame = 0, run = null, down = null, dragged = false;
 
     function measure() {
-      const next = [...root.querySelectorAll('[data-chapter]')].map(node => ({ node, at: pageY(node) }));
+      const next = [...root.querySelectorAll('[data-chapter]')].map(node => {
+        const layout = node.closest('.example-layout');
+        if (!layout) return { node, at: pageY(node) };
+        const scene = layout.parentElement;
+        const hold = pageY(layout) - pageY(scene);
+        return { node, at: Math.min(pageY(node) - hold, pageY(scene.querySelector('.example-exit-start'))) };
+      });
       if (run && next.some((stop, i) => Math.abs(stop.at - stops[i].at) > 1)) cancel();
       stops = next;
       sync();
@@ -67,22 +74,40 @@ export function useStagePlayback(track) {
       const current = Math.max(0, stops.findLastIndex(stop => stop.at <= from + 4));
       const target = stops[current + direction];
       if (!target) return;
-      const to = pageY(target.node);
+      const arrival = target.node.querySelector('[data-scene-arrival]');
+      const to = arrival ? pageY(arrival) : target.at;
       if (reducedMotion()) {
         window.scrollTo({ top: to, behavior: 'instant' });
         sync();
         return;
       }
       const runway = target.node.previousElementSibling;
-      const firstStop = direction > 0 && target.node.id !== 'chapter-02' && runway?.matches('.motion-runway')
+      const connectedCover = direction > 0 && target.node.hasAttribute('data-approach-cover');
+      const literature = target.node.classList.contains('literature-chapter');
+      const example = direction > 0 && runway?.matches('.example-chapter') ? runway : null;
+      // Play straight through the last outgoing sheet and the first incoming
+      // Literature Map sheet, without an ease-to-stop at the empty boundary.
+      const firstStop = example ? pageY(example.querySelector('.example-exit-start'))
+        : literature ? to
+        : arrival ? target.at
+        : connectedCover ? to - APPROACH_COVER_LEAD * window.innerHeight
+        : direction > 0 && target.node.id !== 'chapter-02' && runway?.matches('.motion-runway')
         ? pageY(runway) : to;
-      const transitionTime = target.node.id === 'chapter-03' ? 1800 : 1360;
+      const transitionTime = example ? 2720 : arrival ? 1480 : connectedCover ? 1320
+        : target.node.id === 'chapter-03' ? 1800 : 1360;
       const separateTransition = firstStop > from + 24 && firstStop < to - 24;
       const destination = separateTransition ? firstStop : to;
       const distance = Math.abs(destination - from) / window.innerHeight;
-      const duration = target.node.hasAttribute('data-motion') && !separateTransition
-        ? Math.min(1800, 940 + distance * 300)
-        : Math.min(720, 380 + distance * 125);
+      let duration = Math.min(720, 380 + distance * 125);
+      if (!separateTransition) {
+        if (literature || target.node.hasAttribute('data-related-cover')) {
+          duration = Math.min(3700, 1000 + distance * 1150);
+        } else if (arrival || target.node.hasAttribute('data-motion')) {
+          duration = Math.min(1800, 940 + distance * 300);
+        } else if (connectedCover) {
+          duration = 920;
+        }
+      }
       run = {
         from, to: destination, duration, expected: from, started: performance.now(),
         transition: separateTransition ? { to, duration: transitionTime } : null,
@@ -100,7 +125,8 @@ export function useStagePlayback(track) {
       url.hash = id;
       history.replaceState(null, '', url);
       stop.node.querySelector('h2')?.focus({ preventScroll: true });
-      window.scrollTo({ top: pageY(stop.node), behavior: 'auto' });
+      const arrival = stop.node.querySelector('[data-scene-arrival]');
+      window.scrollTo({ top: arrival ? pageY(arrival) : stop.at, behavior: 'auto' });
       sync();
     }
 
@@ -131,7 +157,13 @@ export function useStagePlayback(track) {
     }
 
     function click(event) {
-      if (event.defaultPrevented || event.target.closest('a,button,select,label,summary')) return;
+      if (event.defaultPrevented) return;
+      const stageStep = event.target.closest('button[data-stage-step]');
+      if (stageStep) {
+        advance(Number(stageStep.dataset.stageStep));
+        return;
+      }
+      if (event.target.closest('a,button,select,label,summary')) return;
       if (!event.target.closest('[data-play-surface]') || (event.detail > 0 && dragged)) return;
       if (!window.getSelection()?.toString()) advance(1);
     }

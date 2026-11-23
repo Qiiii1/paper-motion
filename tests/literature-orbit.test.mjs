@@ -10,9 +10,12 @@ test('one card feeds through the same gate while previous cards turn', () => {
     const local = Math.floor(index / 2) + (index % 2) * .375;
     const before = (local + .06) / pairs;
     const after = (local + .16) / pairs;
+    const gate = literatureCardPose(index, (local + .375 * .62) / pairs);
     const incoming = literatureCardPose(index, after);
-    assert.equal(incoming.x, 88);
-    assert.equal(incoming.y, 50);
+    assert.ok(Math.abs(gate.x - 88) < 1e-9);
+    assert.ok(Math.abs(gate.y - 50) < 1e-9);
+    assert.ok(Math.abs(gate.angle - 90) < 1e-9);
+    assert.ok(Math.abs(gate.travel) < 1e-9);
     assert.ok(incoming.travel < literatureCardPose(index, before).travel);
     assert.ok(literatureTurn(after) > literatureTurn(before));
     if (index > 0) {
@@ -25,6 +28,23 @@ test('one card feeds through the same gate while previous cards turn', () => {
     }
   }
   assert.equal(literatureTurn(1), 360);
+});
+
+test('incoming cards have clearly different arcs and travel rates at the visible edge', () => {
+  const pairs = LITERATURE_CARD_COUNT / 2;
+  const halfway = Array.from({ length: 5 }, (_, index) => {
+    const local = Math.floor(index / 2) + (index % 2) * .375;
+    return literatureCardPose(index, (local + .375 * .62 / 2) / pairs);
+  });
+  assert.ok(halfway.some(card => card.travel < .4) && halfway.some(card => card.travel > .6));
+  const nearEdge = [0, 1].map(index => {
+    const start = index * .375;
+    const samples = Array.from({ length: 101 }, (_, step) =>
+      literatureCardPose(index, (start + step * .002325) / pairs));
+    return samples.find(card => Math.abs(card.travel - .36) < .02);
+  });
+  assert.ok(nearEdge[0].y < 41 && nearEdge[0].angle < 74);
+  assert.ok(nearEdge[1].y > 58 && nearEdge[1].angle > 103);
 });
 
 const dot = ([x, y], [u, v]) => x * u + y * v;

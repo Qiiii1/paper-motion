@@ -6,6 +6,7 @@ import { galleryPose, openingScreens, presetStop } from './presets';
 import { loadPages, createRenderer, createDOMRenderer } from './renderer';
 import { followScroll } from './scrollProgress';
 import { pageY } from './research';
+import { APPROACH_COVER_LEAD, blendSectionCover, sectionCoverPoses } from './sectionCoverMotion';
 
 function phaseAt(scenes, y) {
   let previous = scenes[0];
@@ -30,7 +31,7 @@ export function PaperStage({ track, lang }) {
     const host = stage.current, surface = canvas.current;
     const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
     let stopped = false, artworkFailed = false, frame = 0, previous = 0, time = 0, flight = 0, formation = 0;
-    let progress, renderer, images, w, h, scenes, windows, ladder, stack, focus;
+    let progress, renderer, images, w, h, scenes, windows, ladder, background, stack, focus;
     let pointerTarget = 0, pointerX = 0, rowTravel = 0;
 
     function queue() {
@@ -51,6 +52,11 @@ export function PaperStage({ track, lang }) {
       });
       const approach = root.querySelector('[data-approach]');
       ladder = approach && { top: pageY(approach), span: Math.max(1, approach.offsetHeight - h) };
+      const cover = root.querySelector('[data-approach-cover]');
+      if (cover) {
+        const top = pageY(cover);
+        background = { top, end: top + cover.offsetHeight, span: Math.max(1, cover.offsetHeight - h) };
+      }
       const stacked = root.querySelector('[data-stack]');
       stack = stacked && {
         top: pageY(stacked),
@@ -79,7 +85,9 @@ export function PaperStage({ track, lang }) {
     function tick(now) {
       frame = 0;
       const y = window.scrollY;
-      if (!windows.some(([top, bottom]) => top < y + h && bottom > y)) {
+      const visible = windows.some(([top, bottom]) => top < y + h && bottom > y);
+      host.toggleAttribute('data-art-idle', !visible);
+      if (!visible) {
         previous = 0;
         return;
       }
@@ -152,7 +160,7 @@ export function PaperStage({ track, lang }) {
         : 0;
       rowTravel = motion && dt ? followScroll(rowTravel, travelTarget, dt, 1) : travelTarget;
       const center = w >= 680 ? w * .215 * ease(0, .48, extra) : 0;
-      const poses = Array.from({ length: COUNT }, (_, i) => {
+      let poses = Array.from({ length: COUNT }, (_, i) => {
         const img = images[i % images.length];
         const grid = cardPose(i, Math.min(p, gridPhase), formation, w, h,
           img.naturalHeight / img.naturalWidth, flight, inStack || wheel > 0 ? 0 : pointerX, spin, rowTravel);
@@ -165,7 +173,22 @@ export function PaperStage({ track, lang }) {
         pose[1] -= lift;
         return pose;
       });
-      renderer.draw(keepCardsApart(poses), w, h, time, lensAt(progress * openingScreens));
+      let light = lensAt(progress * openingScreens);
+      if (background) {
+        const blend = motion
+          ? ease(background.top - APPROACH_COVER_LEAD * h, background.top - .10 * h, y) *
+            (1 - ease(background.end - .68 * h, background.end + .28 * h, y))
+          : Number(y + 1 >= background.top && y < background.end);
+        if (blend > 0) {
+          const travel = motion ? Math.max(0, Math.min(1, (y - background.top) / background.span)) : .46;
+          const shift = motion ? Math.min(0, background.end - h - y) : 0;
+          const ribbons = sectionCoverPoses(1, travel, time, w, h, h * .68, shift);
+          poses = blendSectionCover(poses, ribbons, blend, Math.min(w, h));
+          light = { exposure: light.exposure * (1 - blend) + .16 * blend,
+            dispersion: light.dispersion * (1 - blend), edge: light.edge * (1 - blend) };
+        }
+      }
+      renderer.draw(keepCardsApart(poses), w, h, time, light);
     }
 
     function point(event) {

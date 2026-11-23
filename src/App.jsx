@@ -14,7 +14,8 @@ export function App() {
     if (!target) return;
     const input = new AbortController();
     const stop = () => input.abort();
-    const align = () => target.scrollIntoView({ behavior: 'instant' });
+    const arrival = target.querySelector('[data-scene-arrival]') ?? target;
+    const align = () => arrival.scrollIntoView({ behavior: 'instant' });
     align();
     for (const event of ['wheel', 'pointerdown', 'keydown']) {
       window.addEventListener(event, stop, { passive: true, signal: input.signal });

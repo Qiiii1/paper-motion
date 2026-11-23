@@ -6,6 +6,16 @@ const gateAngle = 90;
 const outerRadius = 38;
 const innerRadius = 21;
 const feedTime = .375;
+const approachTime = .62;
+const arcPeak = .64;
+const arcEnd = .94;
+const entryProfiles = [
+  { arc: -10, pace: .68, tilt: -18 },
+  { arc: 9, pace: -.57, tilt: 15 },
+  { arc: -5, pace: -.34, tilt: -9 },
+  { arc: 7, pace: .45, tilt: 13 },
+  { arc: 0, pace: 0, tilt: 0 },
+];
 const mix = (from, to, amount) => from + (to - from) * amount;
 const clamp = value => Math.max(0, Math.min(1, value));
 
@@ -28,7 +38,13 @@ export function literatureTurn(progress) {
 export function literatureCardPose(index, progress, turn = literatureTurn(progress)) {
   const inner = index % 2 === 0;
   const feed = clamp((progress * slots - Math.floor(index / 2) - (inner ? 0 : feedTime)) / feedTime);
-  const joined = smooth((feed - .62) / .38);
+  const approach = clamp(feed / approachTime);
+  const profile = entryProfiles[index % entryProfiles.length];
+  const taper = approach * (1 - approach);
+  const traveled = smooth(approach + profile.pace * taper);
+  // Center the bend near the visible edge, then straighten before the gate.
+  const arc = smooth(traveled / arcPeak) * (1 - smooth((traveled - arcPeak) / (arcEnd - arcPeak)));
+  const joined = smooth((feed - approachTime) / (1 - approachTime));
   const angle = literatureSlot(index) * slotAngle + turn;
   const radians = angle * Math.PI / 180;
   const radius = inner ? innerRadius : outerRadius;
@@ -39,9 +55,9 @@ export function literatureCardPose(index, progress, turn = literatureTurn(progre
     // Both rings use the same gate. Seat the inner card first while the
     // corresponding slot on the outer ring is still empty.
     x: mix(gateX, 50 + Math.sin(radians) * radius, joined),
-    y: mix(50, 50 - Math.cos(radians) * radius, joined),
-    angle: gateAngle + angleFromGate * joined,
-    travel: 1 - smooth(feed / .62),
+    y: mix(50, 50 - Math.cos(radians) * radius, joined) + profile.arc * arc,
+    angle: gateAngle + angleFromGate * joined + profile.tilt * arc,
+    travel: 1 - traveled,
     opacity: smooth(feed / .35),
   };
 }

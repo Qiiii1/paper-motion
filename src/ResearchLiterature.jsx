@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useRef } from 'react';
-import { Binoculars, Target } from 'lucide-react';
+import { Target } from 'lucide-react';
 import { papers } from './papers';
+import { ease } from './choreography';
 import { LITERATURE_CARD_COUNT, literatureCardPose, literatureSlot, literatureTurn } from './literatureOrbit';
 import { viewportProgress } from './scrollProgress';
 import { publicAsset } from './publicAsset';
@@ -40,16 +41,21 @@ function Strand({ index }) {
   </article>;
 }
 
-export function ResearchLiterature({ id, phase, children }) {
+export function ResearchLiterature({ id, phase }) {
   const root = useRef(null);
   const orbit = useRef(null);
   useLayoutEffect(() => {
     const scene = root.current;
+    const runway = scene.previousElementSibling;
+    const coverPin = runway.previousElementSibling.querySelector('.part-cover-pin');
+    const layout = scene.firstElementChild;
     const cards = [...orbit.current.children];
-    const copy = [...scene.querySelectorAll('[data-literature-reveal]')];
+    const synthesis = layout.querySelector('.literature-synthesis');
+    const copy = [...scene.querySelectorAll('[data-literature-reveal]')].filter(node => !synthesis.contains(node));
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     let frame = 0;
     let previous;
+    let held = 0;
     function write(element, property, value) {
       if (element.style.getPropertyValue(property) !== value) {
         element.style.setProperty(property, value);
@@ -58,14 +64,32 @@ export function ResearchLiterature({ id, phase, children }) {
     function update() {
       frame = 0;
       const height = window.innerHeight;
-      const { top, bottom } = scene.getBoundingClientRect();
-      const next = motion.matches ? 1 : viewportProgress(top, height, .97, .01);
-      if (next === previous && (top > height || bottom < 0)) return;
+      const { top, bottom, height: sceneHeight } = scene.getBoundingClientRect();
+      // The last pinned cover frame and the first orbit frame share a scroll position.
+      const handoff = runway.getBoundingClientRect().top - coverPin.getBoundingClientRect().height;
+      const arrival = Math.max(0, -handoff);
+      const from = top - handoff;
+      const next = motion.matches ? 1 : viewportProgress(top, height, from / height, .01);
+      if (next === previous && (handoff > 0 || bottom < 0)) return;
       // Compensate for the page moving until the stationary gate is in its
       // normal reading position. The ring then leaves in the document flow.
       const lift = next > 0 && !motion.matches ? Math.min(0, -top) : 0;
-      const textProgress = copy.map(node => viewportProgress(node.getBoundingClientRect().top, height, .97, .71));
+      const layoutHeight = layout.offsetHeight;
+      const exitLength = sceneHeight - layoutHeight;
+      const hold = !motion.matches && exitLength > 1
+        ? Math.min(exitLength, Math.max(0, height - top - layoutHeight))
+        : 0;
+      const correction = hold - held;
+      const textProgress = copy.map(node => viewportProgress(node.getBoundingClientRect().top + correction, height, .97, .77));
+      // The last row completes its reveal as it comes fully into view.
+      const synthesisIn = viewportProgress(synthesis.getBoundingClientRect().bottom + correction, height, 1.08, .99);
+      held = hold;
+      write(scene, '--literature-hold', hold + 'px');
+      write(synthesis, '--literature-text-progress', String(synthesisIn));
+      write(scene, '--literature-rewind', String(exitLength > 1 ? 1 - hold / exitLength : 1));
+      scene.toggleAttribute('data-literature-exiting', hold > 0);
       if (next !== previous) {
+        const firstCardIn = motion.matches ? 1 : ease(0, Math.min(11, height * .016), arrival);
         write(scene, '--literature-progress', String(next));
         const turn = literatureTurn(next);
         cards.forEach((card, index) => {
@@ -74,11 +98,14 @@ export function ResearchLiterature({ id, phase, children }) {
           write(card, '--orbit-y', y + '%');
           write(card, '--orbit-angle', angle + 'deg');
           write(card, '--orbit-travel', String(travel));
-          write(card, '--orbit-show', String(opacity));
+          write(card, '--orbit-show', String(index === 0 ? firstCardIn : opacity));
         });
         previous = next;
       }
       write(scene, '--literature-lift', lift + 'px');
+      const titleTravel = Math.min(56, height * .082);
+      const titleStep = Math.min(1, arrival / titleTravel);
+      write(scene, '--literature-title-in', String(motion.matches ? 1 : 1 - (1 - titleStep) ** 2));
       copy.forEach((node, index) => write(node, '--literature-text-progress', String(textProgress[index])));
     }
     function queue() {
@@ -136,18 +163,6 @@ export function ResearchLiterature({ id, phase, children }) {
           <LiteratureReveal><h4>Synthesis</h4></LiteratureReveal>
           <LiteratureReveal><p>Together, these four lines of inquiry explain how users understand and modify tasks in long conversations.</p></LiteratureReveal>
         </aside>
-        <aside className="literature-summary literature-gap">
-          <Binoculars aria-hidden="true" />
-          <LiteratureReveal><h4>Research Gap</h4></LiteratureReveal>
-          <LiteratureReveal>
-            <strong>Information → Scope → Verification</strong>
-            <p>How can users connect information relationships, the scope of changes, and verification of what actually changed?</p>
-          </LiteratureReveal>
-        </aside>
-        <details className="literature-details">
-          <summary>Literature review details</summary>
-          <LiteratureReveal className="chapter-copy">{children}</LiteratureReveal>
-        </details>
       </div>
     </div>
   </section>;
