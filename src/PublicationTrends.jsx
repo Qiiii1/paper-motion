@@ -31,7 +31,7 @@ function SearchHits({ top }) {
   // The totals climb with the reader: bars fill and the numbers count up as the
   // block rises into view, then hold at their real values.
   const viewport = typeof window === 'undefined' ? 800 : window.innerHeight;
-  const climb = Math.max(0, Math.min(1, (viewport * .95 - top) / (viewport * .50)));
+  const climb = Math.max(0, Math.min(1, (viewport * .95 - top) / (viewport * .70)));
   const grow = climb * climb * (3 - 2 * climb);
   return <div className="trends-counts">
     <p className="trends-kicker">Initial Search · Four Themes</p>
