@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { cardPose, COUNT, ease, focusWheelPose } from './choreography';
 import { lensAt } from './openingLens';
-import { keepCardsApart } from './cardClearance';
 import { galleryPose, openingScreens, presetStop } from './presets';
 import { loadPages, createRenderer, createDOMRenderer } from './renderer';
 import { followScroll } from './scrollProgress';
@@ -188,7 +187,7 @@ export function PaperStage({ track, lang }) {
             dispersion: light.dispersion * (1 - blend), edge: light.edge * (1 - blend) };
         }
       }
-      renderer.draw(keepCardsApart(poses), w, h, time, light);
+      renderer.draw(poses, w, h, time, light);
     }
 
     function point(event) {

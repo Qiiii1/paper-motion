@@ -3,6 +3,7 @@ import { createOpeningLens } from './openingLens';
 import { papers } from './papers';
 import { publicAsset } from './publicAsset';
 import { COUNT } from './choreography';
+import { keepCardsApart } from './cardClearance';
 
 const vertex = `
 attribute vec2 uv;
@@ -119,6 +120,7 @@ export function createRenderer(canvas, imgs) {
   return {
     draw(poses, w, h, time, light) {
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const camera = Math.max(w, h) * 1.65;
       gl.useProgram(program);
       gl.bindBuffer(gl.ARRAY_BUFFER,vertices);
       gl.enableVertexAttribArray(uv);
@@ -131,9 +133,9 @@ export function createRenderer(canvas, imgs) {
       }
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.uniform2f(uniforms.viewport,w,h);
-      gl.uniform1f(uniforms.camera, Math.max(w,h)*1.65);
+      gl.uniform1f(uniforms.camera, camera);
       gl.uniform1f(uniforms.clock,time);
-      poses.forEach(([x,y,z,yaw,pitch,roll,width,bend,glow,height,cylinder=0],i) => {
+      keepCardsApart(poses, camera).forEach(([x,y,z,yaw,pitch,roll,width,bend,glow,height,cylinder=0],i) => {
         if (width < 0.25 || height < 0.25) return;
         const idx = i % imgs.length;
         gl.bindTexture(gl.TEXTURE_2D,textures[idx]);
@@ -183,14 +185,14 @@ export function createDOMRenderer(host, imgs) {
     draw(poses,w,h,time,light) {
       const camera=Math.max(w,h)*1.65;
       host.style.perspective=camera+'px';
-      poses.forEach(([x,y,z,yaw,pitch,roll,width,bend,glow,height,cylinder=0],i)=>{
+      keepCardsApart(poses, camera).forEach(([x,y,z,yaw,pitch,roll,width,bend,glow,height,cylinder=0],i)=>{
         const {node,img,strips}=nodes[i];
         node.hidden=width<.25 || height<.25;
         if(node.hidden) return;
         const style=node.style;
         style.width=width+'px'; style.height=height+'px';
         style.transform='translate3d('+x+'px,'+y+'px,'+z+'px) translate(-50%,-50%) rotateZ('+roll+'rad) rotateX('+pitch+'rad) rotateY('+yaw+'rad) skewX('+(1-cylinder)*bend*.3+'rad)';
-        const r=Math.hypot(x,y)/(Math.min(w,h)*.1616);
+        const r=Math.hypot(x,y)/((1-z/camera)*Math.min(w,h)*.1616);
         const exposure=1+light.exposure*Math.exp(-r*r)*.8;
         const curved=Math.abs(bend*cylinder)>.0005;
         img.hidden=curved; img.style.filter='brightness('+exposure+')';

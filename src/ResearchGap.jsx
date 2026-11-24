@@ -88,5 +88,7 @@ export function ResearchGap({ scene }) {
       </svg>
     </div>
     <span className="research-gap-arrival" data-scene-arrival aria-hidden="true" />
+    <span className="research-gap-travel" aria-hidden="true" />
+    <span className="research-gap-outro" aria-hidden="true" />
   </section>;
 }

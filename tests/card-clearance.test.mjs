@@ -5,7 +5,10 @@ import { OBB } from 'three/addons/math/OBB.js';
 import { cardPose, COUNT, focusWheelPose } from '../src/choreography.js';
 import { keepCardsApart } from '../src/cardClearance.js';
 import { galleryPose, presetStop } from '../src/presets.js';
-import { blendSectionCover, comparisonRingPoses, researchGapPaperPoses, relatedTitleReveal, sectionCoverPoses } from '../src/sectionCoverMotion.js';
+import {
+  blendSectionCover, comparisonRingPoses, departGapPapers, questionsCoverPoses,
+  researchGapPaperPoses, relatedTitleReveal, sectionCoverPoses,
+} from '../src/sectionCoverMotion.js';
 
 function windVolume(pose) {
   const [x,y,z,yaw,pitch,roll,w,bend,,h]=pose;
@@ -16,6 +19,20 @@ function windVolume(pose) {
     new Vector3(w*(.5+.23*wind),h*(.5+.12*wind),h*wind),
     new Matrix3().setFromMatrix4(rotation),
   );
+}
+
+function apart(poses, width, height) {
+  const camera = Math.max(width, height) * 1.65;
+  const projectedFootprint = pose => [0, 1, 6, 9].map(axis => pose[axis] / (1 - pose[2] / camera));
+  const before = poses.map(projectedFootprint);
+  const after = keepCardsApart(poses, camera);
+  for (const [i, pose] of after.entries()) {
+    const footprint = projectedFootprint(pose);
+    for (const [axis, value] of footprint.entries()) {
+      assert.ok(Math.abs(value - before[i][axis]) < 1e-8, 'Paper ' + i + ' shifted or resized on screen');
+    }
+  }
+  return after;
 }
 
 function frame(w,h,t,step) {
@@ -30,11 +47,20 @@ function frame(w,h,t,step) {
   });
 }
 
+test('coincident sheets keep their footprints and separate in depth', () => {
+  const pose = [0, 0, 0, .2, -.4, .1, 110, .08, 0, 145, 1];
+  const [front, middle, back] = apart([pose.slice(), pose.slice(), pose.slice()], 390, 844);
+  assert.deepEqual(front, pose);
+  assert.ok(front[2] > middle[2] && middle[2] > back[2]);
+  assert.ok(!windVolume(front).intersectsOBB(windVolume(middle)));
+  assert.ok(!windVolume(middle).intersectsOBB(windVolume(back)));
+});
+
 for(const [w,h] of [[320,568],[390,844],[844,390],[1360,880]]) {
   test('wind envelopes stay disjoint at '+w+' × '+h,()=>{
     for(const t of [0,4.6,17.1]) {
       for(let step=0;step<=320;step++) {
-        const poses=keepCardsApart(frame(w,h,t,step));
+        const poses=apart(frame(w,h,t,step), w, h);
         const boxes=poses.filter(p=>p[6]>=.25 && p[9]>=.25).map(windVolume);
         for(let i=0;i<boxes.length;i++) {
           for(let j=i+1;j<boxes.length;j++) {
@@ -50,8 +76,8 @@ for(const [w,h] of [[320,568],[390,844],[844,390],[1360,880]]) {
 
 test('the research focus wheel settles before the reveal and keeps its cards during a turn',()=>{
   const w=390,h=844;
-  const wheel=(blend,turn)=>keepCardsApart(Array.from({length:COUNT},(_,i)=>
-    focusWheelPose(cardPose(i,.64,0,w,h,1.32,0),i,blend,turn,w,h))).filter(p=>p[6]>.25);
+  const wheel=(blend,turn)=>apart(Array.from({length:COUNT},(_,i)=>
+    focusWheelPose(cardPose(i,.64,0,w,h,1.32,0),i,blend,turn,w,h)), w, h).filter(p=>p[6]>.25);
   const settled=wheel(.98,0), endpoint=wheel(1,0), turned=wheel(1,Math.PI*.72);
   assert.deepEqual(settled,endpoint);
   assert.equal(settled.length,15);
@@ -69,7 +95,7 @@ test('the approach deck morphs into the cover without intersecting', () => {
     assert.deepEqual(blendSectionCover(makeDeck(), makeRibbons(), 1, width), makeRibbons());
     for (let step = 0; step <= 75; step++) {
       const pose = blendSectionCover(makeDeck(), makeRibbons(), step / 75, Math.min(width, height));
-      const settled = keepCardsApart(pose).filter(card => card[6] >= .25).map(windVolume);
+      const settled = apart(pose, width, height).filter(card => card[6] >= .25).map(windVolume);
       for (const [index, box] of settled.entries()) {
         assert.ok(settled.slice(0, index).every(previous => !box.intersectsOBB(previous)));
       }
@@ -92,9 +118,7 @@ test('settled presets keep their designed footprints during a full turn',()=>{
   for(let preset=0;preset<7;preset++) {
     for(let t=0;t<32;t+=.25) {
       const poses=Array.from({length:COUNT},(_,i)=>galleryPose(cardPose(i,1,t,390,844,1.32,0),i,presetStop(preset),t,390,844));
-      const widths=poses.map(p=>p[6]);
-      keepCardsApart(poses);
-      poses.forEach((p,i)=>assert.ok(p[6]>=widths[i]*.97,'preset '+preset+' card '+i));
+      apart(poses, 390, 844);
     }
   }
 });
@@ -138,7 +162,7 @@ test('the comparison cover builds one upright ring and preserves it as the readi
       assert.ok(entering.every((pose, i) => pose[0] === settled[i][0] && pose[1] <= settled[i][1] + .001));
       assert.ok(entering.filter((pose, i) => Math.abs(pose[1] - settled[i][1]) > .001).length <= 2);
       previous = entering.length;
-      const boxes = keepCardsApart(poses).filter(pose => pose[6] > .25).map(windVolume);
+      const boxes = apart(poses, width, height).filter(pose => pose[6] > .25).map(windVolume);
       for (const [index, box] of boxes.entries()) {
         assert.ok(boxes.slice(0, index).every(other => !box.intersectsOBB(other)));
       }
@@ -157,7 +181,7 @@ test('the comparison cover builds one upright ring and preserves it as the readi
         assert.ok(Math.abs(pose[3] - settled[i][3] - turn) < .001);
         assert.ok(Math.abs(Math.hypot(pose[0], pose[2] / Math.cos(.135)) - radii[i]) < .001);
       }
-      const boxes = keepCardsApart(rotating).map(windVolume);
+      const boxes = apart(rotating, width, height).map(windVolume);
       for (const [index, box] of boxes.entries()) {
         assert.ok(boxes.slice(0, index).every(other => !box.intersectsOBB(other)));
       }
@@ -181,9 +205,38 @@ test('the research gap ring gathers through the center and resolves to the openi
     assert.deepEqual(frame(1), Array.from({ length: COUNT }, (_, i) =>
       cardPose(i, 0, time, width, height, aspects[i % aspects.length], time)));
     for (let step = 1; step < 20; step++) {
-      const boxes = keepCardsApart(frame(step / 20)).filter(pose => pose[6] > .25).map(windVolume);
+      const boxes = apart(frame(step / 20), width, height).filter(pose => pose[6] > .25).map(windVolume);
       for (const [index, box] of boxes.entries()) {
         assert.ok(boxes.slice(0, index).every(other => !box.intersectsOBB(other)));
+      }
+    }
+  }
+});
+
+test('the questions cover clears the old sheets and keeps the incoming arcs and ring separated', () => {
+  for (const [width, height] of [[320, 568], [390, 844], [844, 390], [1280, 800]]) {
+    const flight = Array.from({ length: COUNT }, (_, i) => cardPose(i, 0, .62, width, height, 1.32, .62));
+    assert.deepEqual(departGapPapers(flight, 0, width, height), flight);
+    const finish = departGapPapers(flight, 1, width, height);
+    assert.ok(finish.every(pose => pose[6] === 0));
+
+    const ribbons = questionsCoverPoses(1, width, height);
+    assert.equal(ribbons.filter(pose => pose[6] > 0).length, 27);
+    assert.notDeepEqual(questionsCoverPoses(.25, width, height), ribbons);
+    assert.notDeepEqual(questionsCoverPoses(1.3, width, height), ribbons);
+    const ring = comparisonRingPoses(1, width, height, 135, Math.PI / 2);
+    for (let step = 1; step < 20; step++) {
+      const progress = step / 20;
+      const frames = [
+        departGapPapers(flight, progress, width, height),
+        questionsCoverPoses(progress, width, height),
+        blendSectionCover(ribbons, ring, progress, Math.min(width, height)),
+      ];
+      for (const poses of frames) {
+        const boxes = apart(poses, width, height).filter(pose => pose[6] > .25).map(windVolume);
+        for (const [index, box] of boxes.entries()) {
+          assert.ok(boxes.slice(0, index).every(other => !box.intersectsOBB(other)));
+        }
       }
     }
   }

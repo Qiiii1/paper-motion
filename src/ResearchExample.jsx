@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { ArrowRight, UserRound } from 'lucide-react';
+import { Citation } from './Citation';
 import { chapterId } from './research';
 import { viewportProgress } from './scrollProgress';
 import { publicAsset } from './publicAsset';
@@ -234,8 +235,8 @@ export function ResearchExample({ id, phase, children }) {
         </ExampleSection>
 
         <ExampleSection title="Research Gap" className="example-gap">
-          <p>Users may still struggle to judge whether a modification truly took effect after editing. <a className="citation" href="#ref-07">[7]</a></p>
-          <p>Shopping Mart and its original reward mechanism come from Web-Bench <a className="citation" href="#ref-16">[16]</a>. The rule change and failure cases are illustrative examples. Web-Bench does not report these outcomes or study real users’ long AI conversations.</p>
+          <p>Users may still struggle to judge whether a modification truly took effect after editing. <Citation>[7]</Citation></p>
+          <p>Shopping Mart and its original reward mechanism come from Web-Bench <Citation>[16]</Citation>. The rule change and failure cases are illustrative examples. Web-Bench does not report these outcomes or study real users’ long AI conversations.</p>
         </ExampleSection>
       </div>
 

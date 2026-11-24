@@ -1,7 +1,6 @@
-// Bound the full wind-deformed mesh in its local coordinate system. The shader's
-// maximum edge weight is 1.25. These bounds therefore hold at every wave phase.
-function envelope(pose) {
-  const [x,y,z,yaw,pitch,roll,width,bend,,height] = pose;
+// Bound the full wind-deformed mesh in its local coordinate system.
+function envelope(pose, camera) {
+  const [x, y, z, yaw, pitch, roll, width, bend, , height] = pose;
   const cy = Math.cos(yaw), sy = Math.sin(yaw);
   const cp = Math.cos(pitch), sp = Math.sin(pitch);
   const cr = Math.cos(roll), sr = Math.sin(roll);
@@ -11,92 +10,76 @@ function envelope(pose) {
     [cr*sy+sr*sp*cy, sr*sy-cr*sp*cy, cp*cy],
   ];
   const wind = 1.25 * Math.abs(bend);
-  const half = [width*(0.5 + 0.23*wind), height*(0.5 + 0.12*wind), height*wind];
-  // Leave some daylight around the bent edges, including subpixel precision.
-  for(let i=0;i<3;i++) half[i]*=1.035;
-  return {x,y,z,axes,half,radius:Math.hypot(...half)};
+  const half = [width*(.5 + .23*wind), height*(.5 + .12*wind), height*wind].map(value => value * 1.035);
+  const box = { x, y, z: z - camera, axes, half, factor: 1 };
+  const extentX = projectedRadius(box, 1, 0, 0);
+  const extentY = projectedRadius(box, 0, 1, 0);
+  const extentZ = projectedRadius(box, 0, 0, 1);
+  box.near = camera - z - extentZ;
+  box.far = camera - z + extentZ;
+
+  // Screen bounds stay fixed when a sheet moves along its projection cone.
+  const left = x - extentX, right = x + extentX;
+  const top = y - extentY, bottom = y + extentY;
+  box.left = left / (left < 0 ? box.near : box.far);
+  box.right = right / (right > 0 ? box.near : box.far);
+  box.top = top / (top < 0 ? box.near : box.far);
+  box.bottom = bottom / (bottom > 0 ? box.near : box.far);
+  return box;
 }
 
-function projectedRadius(box,x,y,z) {
-  const [u,v,n] = box.axes;
-  const [a,b,c] = box.half;
-  return a*Math.abs(u[0]*x+u[1]*y+u[2]*z)
-       + b*Math.abs(v[0]*x+v[1]*y+v[2]*z)
-       + c*Math.abs(n[0]*x+n[1]*y+n[2]*z);
+function projectedRadius(box, x, y, z) {
+  const [u, v, n] = box.axes;
+  const [a, b, c] = box.half;
+  return a * Math.abs(u[0]*x + u[1]*y + u[2]*z)
+       + b * Math.abs(v[0]*x + v[1]*y + v[2]*z)
+       + c * Math.abs(n[0]*x + n[1]*y + n[2]*z);
 }
 
-// Find a separating plane for each pair of oriented boxes. Keeping the largest
-// valid common scale trims only the sheets whose paths are currently too close.
-function pairScale(a,b) {
-  const dx=b.x-a.x, dy=b.y-a.y, dz=b.z-a.z;
-  const reach=a.radius+b.radius;
-  if(dx*dx+dy*dy+dz*dz >= reach*reach) return 1;
-  let scale=0;
-  function probe(x,y,z) {
-    const support=projectedRadius(a,x,y,z)+projectedRadius(b,x,y,z);
-    if(support>1e-7) {
-      const distance=Math.abs(dx*x+dy*y+dz*z);
-      scale=Math.max(scale,distance/support);
-    }
-    return scale>=1;
+function depthFactor(front, back, lower) {
+  const gap = .01;
+  const farDepth = front.far * front.factor + gap;
+  if (farDepth <= back.near * lower ||
+      front.left >= back.right || front.right <= back.left ||
+      front.top >= back.bottom || front.bottom <= back.top) return lower;
+
+  let required = farDepth / back.near;
+  function probe(x, y, z) {
+    const center = back.x*x + back.y*y + back.z*z;
+    const near = Math.abs(center) - projectedRadius(back, x, y, z);
+    if (near <= 1e-7) return false;
+    const far = (front.x*x + front.y*y + front.z*z) * Math.sign(center) + projectedRadius(front, x, y, z);
+    required = Math.min(required, (front.factor * far + gap * Math.hypot(x, y, z)) / near);
+    return required <= lower;
   }
-  for(const axis of a.axes) if(probe(...axis)) return 1;
-  for(const axis of b.axes) if(probe(...axis)) return 1;
-  for(const u of a.axes) {
-    for(const v of b.axes) {
-      if(probe(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])) return 1;
+  for (const axis of front.axes) if (probe(...axis)) return lower;
+  for (const axis of back.axes) if (probe(...axis)) return lower;
+  for (const u of front.axes) {
+    for (const v of back.axes) {
+      if (probe(u[1]*v[2] - u[2]*v[1], u[2]*v[0] - u[0]*v[2], u[0]*v[1] - u[1]*v[0])) return lower;
     }
   }
-  return scale;
+  return required;
 }
 
-export function keepCardsApart(poses) {
-  const boxes=poses.map(envelope);
-  // Let crossing paths bow away from each other before reducing a sheet's
-  // footprint. Apply all offsets together so card index never sets priority.
-  const offsets=new Float64Array(poses.length*3);
-  for(let pass=0;pass<3;pass++) {
-    offsets.fill(0);
-    let crowded=false;
-    for(let i=0;i<boxes.length;i++) {
-      if(poses[i][6]<0.25) continue;
-      for(let j=i+1;j<boxes.length;j++) {
-        if(poses[j][6]<0.25) continue;
-        const a=boxes[i], b=boxes[j], fit=pairScale(a,b);
-        if(fit>=0.91) continue;
-        const dx=b.x-a.x, dy=b.y-a.y, dz=b.z-a.z;
-        const span=Math.min(poses[i][6],poses[j][6]);
-        const distance=Math.max(span*.16,Math.hypot(dx,dy,dz));
-        const push=.48*span*(.91-fit)/distance;
-        offsets[i*3]-=dx*push; offsets[j*3]+=dx*push;
-        offsets[i*3+1]-=dy*push; offsets[j*3+1]+=dy*push;
-        offsets[i*3+2]-=dz*push; offsets[j*3+2]+=dz*push;
-        crowded=true;
-      }
+export function keepCardsApart(poses, camera) {
+  const visible = poses.filter(pose => pose[6] >= .25 && pose[9] >= .25).sort((a, b) => b[2] - a[2]);
+  const placed = [];
+  for (const pose of visible) {
+    const box = envelope(pose, camera);
+    for (const front of placed) {
+      box.factor = depthFactor(front, box, box.factor);
     }
-    if(!crowded) break;
-    for(let i=0;i<boxes.length;i++) {
-      const x=offsets[i*3], y=offsets[i*3+1], z=offsets[i*3+2];
-      const limit=Math.max(.01,poses[i][6]*.15);
-      const weight=1/Math.sqrt(1+(x*x+y*y+z*z)/(limit*limit));
-      boxes[i].x=poses[i][0]+=x*weight;
-      boxes[i].y=poses[i][1]+=y*weight;
-      boxes[i].z=poses[i][2]+=z*weight;
-    }
-  }
-  const scales=new Float64Array(poses.length).fill(1);
-  for(let i=0;i<boxes.length;i++) {
-    if(poses[i][6]<0.25) continue;
-    for(let j=i+1;j<boxes.length;j++) {
-      if(poses[j][6]<0.25) continue;
-      const scale=pairScale(boxes[i],boxes[j]);
-      scales[i]=Math.min(scales[i],scale);
-      scales[j]=Math.min(scales[j],scale);
-    }
-  }
-  for(let i=0;i<poses.length;i++) {
-    poses[i][6]*=scales[i];
-    poses[i][9]*=scales[i];
+    placed.push(box);
+
+    if (box.factor === 1) continue;
+    // Move away from the eye and expand by the same factor. Every vertex
+    // keeps its projected position, including the edges of a curled sheet.
+    pose[0] *= box.factor;
+    pose[1] *= box.factor;
+    pose[2] = camera + box.z * box.factor;
+    pose[6] *= box.factor;
+    pose[9] *= box.factor;
   }
   return poses;
 }

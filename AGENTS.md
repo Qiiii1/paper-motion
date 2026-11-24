@@ -8,7 +8,7 @@ When implementing from a selected generated mock, treat that image as the source
 
 Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts/prepare-sites-build.mjs`, and `tests/sites-worker.test.mjs` intact so the same local prototype can be handed to Sites. Before a Sites handoff, run `npm run build` and `npm run test:sites`; the build must leave `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
 
-Keep moving paper cards physically separate, including bent edges and in-between scroll positions. Preserve natural front-to-back occlusion when they overlap on screen.
+Keep moving paper cards physically separate, including bent edges and in-between scroll positions. Resolve intersections in depth while preserving each sheet's projected footprint and front-to-back occlusion. Keep size changes tied to the authored path.
 
 Calibrate the opening light against Premotio at matched viewport sizes. Keep the paper-coloured background uniform and apply the white core and radial colour dispersion to the sheets.
 
@@ -20,7 +20,7 @@ Integrate the study into the scroll-driven paper sequence. Prioritize the resear
 
 Pinned reading scenes: when a chapter's copy is designed as a fixed panel (the research-pathway ladder in 02, the task-context stack in 03), pin the white plate and change only its content step by step while the paper artwork above keeps moving. Do not let the plate scroll out from under a still-running animation, and keep the plate opaque so type never sits on sheets.
 
-Chapter 03 follows the supplied 390×844 mock: paper grid bleeds off the top, then title, a five-layer card stack (initial goal, source material, working assumptions, revision notes, intermediate outputs) revealed one layer per scroll step, a connector into the current task with keep / update / discard branches, and a closing block that replaces the diagram with the "information is present, but what still matters" argument and its keywords.
+Chapter 03 follows the supplied 390×844 mock: paper grid bleeds off the top, then title, a five-layer card stack (initial goal, source material, working assumptions, revision notes, intermediate outputs) revealed one layer per scroll step, a connector into the current task with keep / update / discard branches, and a closing block that replaces the diagram with the "information is present, but what still matters" argument and its keywords. Give the white plate more of the viewport and use that space for larger cards, captions, and branches.
 
 During chapter 03, slide the paper cards along their tilted rows as the panel advances. On forward scroll, the rows alternate toward the upper right and lower left, starting toward the upper right.
 
@@ -50,7 +50,7 @@ End Literature Map with Synthesis. Pin the final reading position while the lett
 
 Keep the end of Literature Map close to Synthesis so the paper wall follows without a blank panel. Bend the paper surfaces around the vertical reel as they enter and leave. Place the illustrated Comparison & critique cover (03) after related research and before the comparison chapter.
 
-Use stronger wheel damping through the story so short gestures are easy to stop. Limit queued travel during bursts and clear it when scroll direction reverses. Preserve native touch and explicit page-scroll distances.
+Use stronger wheel damping through the story. Ease into motion and settle without overshoot. Keep the queued travel short during bursts and clear it along with the old velocity when scroll direction reverses. Preserve native touch and explicit page-scroll distances.
 
 Show the uncropped original image with square corners while a paper is foremost, including as papers exchange the front position. Reserve perspective tilt and curl for papers away from the front. Clip focus lens reveals vertically so the outdented third lens stays readable.
 
@@ -58,8 +58,12 @@ Feather the paper artwork into the task-context stack with a broad, eased gradie
 
 At the end of Case Study, hold the final reading position while the text descends through its masks. Bring the 02 Related Research cover papers in from above, one sheet after another, until they form the ribbons. Once they settle, reveal the cover title upward inside fixed line masks. On further scroll, lower the letters into those same masks, then send the sheets off the right edge one by one. Keep the fades at both handoffs tight enough that the screen never dwells on an empty frame. As the last cover sheet clears, begin the Literature Map title and the first paper at the same scroll position. Scrub the same sequence in reverse when scrolling back.
 
-On the Comparison & critique cover, bring the sheets down individually to form one upright ring. After the ring forms, turn it on its vertical axis as the reader scrolls. Continue the turn while the ring and the opaque Research Support & Limits plate rise together. Keep the ring behind the plate during reading. After the footnote is in view, hold briefly, keep the text and diagram in their fully revealed state, and lower the whole plate quickly. Turn the ring with the same progress as the plate lowers. Reverse the same motion on upward scroll.
+On the Comparison & critique cover, bring the sheets down individually to form one upright ring. After the ring forms, turn it on its vertical axis as the reader scrolls. Continue the turn while the ring and the opaque Research Support & Limits plate rise together. Keep the ring behind the plate during reading. After the footnote is in view, keep the reading plate fixed and fade it out as one surface. Once it clears, bring the papers down from the top one by one to re-form the centered ring. Reverse the same motion on upward scroll.
 
 Draw the Research Support & Limits diagram with editable vector geometry and text. Use the page background behind the diagram. Start the three levels as they enter the viewport and overlap the soft top-to-bottom reveals enough to limit blank space while scrolling. After the reading plate settles, raise the title, subtitle, and introduction in sequence through fixed masks. Use the same upward reveal for diagram text and the footnote, keeping the label boxes in place. Reverse the reveals on upward scroll.
 
 After Research Support & Limits clears, gather the comparison papers toward the center and let them scatter into the opening scene’s flight and lighting. Bring in the Research Gap SVG during the scatter. Raise the task-context reading plate in chapter 03 enough to give the stacked cards larger type and more room.
+
+After Research Gap, hold its layout in place while the SVG content descends and fades. Send its papers off the right edge in sequence and bring new papers in along staggered arcs to form the 05 Research Questions cover ribbons. Ease the ribbons as they settle, then fold them into an upright paper ring behind the incoming reading plate. Keep the title and body reveals inside fixed masks and make the whole sequence reversible through scrolling.
+
+After the Research Questions footnote, hold the reading position as the copy descends inside its masks. Open the exposed paper ring into the 06 Research Design ribbons with staggered diagonal turns. Unfold the ribbons into the tilted paper grid above Research Design. Follow Research Design with Research Process and its two controlled comparisons, using the supplied mobile compositions and editable diagram labels. Link citations directly to their sources.

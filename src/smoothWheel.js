@@ -1,10 +1,9 @@
-import { followScroll } from './scrollProgress';
-
-const wheelGain = .68;
-const wheelResponse = 34;
+const wheelGain = .56;
+const wheelResponse = 26;
 
 export function createSmoothWheel() {
   let frame = 0;
+  let velocity = 0;
   let current, target, expected, previous;
 
   function cancel() {
@@ -19,7 +18,13 @@ export function createSmoothWheel() {
     }
     const seconds = Math.max(0, Math.min(.05, (now - previous) / 1000));
     previous = now;
-    current = followScroll(current, target, seconds, 1, wheelResponse);
+    // A critically damped spring eases both the start and the stop.
+    const offset = current - target;
+    const momentum = velocity + wheelResponse * offset;
+    const decay = Math.exp(-wheelResponse * seconds);
+    current = target + (offset + momentum * seconds) * decay;
+    velocity = (velocity - wheelResponse * momentum * seconds) * decay;
+    if (Math.abs(target - current) <= .5) current = target;
     window.scrollTo({ top: current, behavior: 'instant' });
     expected = window.scrollY;
     frame = current === target ? 0 : requestAnimationFrame(scroll);
@@ -35,11 +40,12 @@ export function createSmoothWheel() {
     const pageMode = mode === WheelEvent.DOM_DELTA_PAGE;
     const unit = pageMode ? viewport.clientHeight : mode === WheelEvent.DOM_DELTA_LINE ? 16 : 1;
     const delta = event.deltaY * unit * (pageMode ? 1 : wheelGain);
-    const maxPending = pageMode ? viewport.clientHeight : Math.min(144, viewport.clientHeight * .18);
+    const maxPending = pageMode ? viewport.clientHeight : Math.min(105, viewport.clientHeight * .135);
     event.preventDefault();
     if (!frame || window.scrollY !== expected) {
       cancel();
       current = target = expected = window.scrollY;
+      velocity = 0;
       previous = performance.now();
       frame = requestAnimationFrame(scroll);
     }
@@ -49,6 +55,10 @@ export function createSmoothWheel() {
     const queued = Math.sign(delta) === Math.sign(pending) ? pending + delta : delta;
     const next = current + Math.max(-maxPending, Math.min(maxPending, queued));
     target = Math.max(0, Math.min(viewport.scrollHeight - viewport.clientHeight, next));
+    const distance = target - current;
+    const direction = Math.sign(distance);
+    // Clear velocity on reversal and keep the spring inside the new target.
+    velocity = direction * Math.max(0, Math.min(direction * velocity, wheelResponse * Math.abs(distance)));
   }
 
   return { move, cancel };

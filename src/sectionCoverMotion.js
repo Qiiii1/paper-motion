@@ -140,6 +140,111 @@ export function researchGapPaperPoses(ring, progress, time, width, height, aspec
   });
 }
 
+export function departGapPapers(poses, progress, width, height) {
+  const camera = Math.max(width, height) * 1.65;
+  return poses.map((pose, index) => {
+    // The right-hand sheets leave first, followed by those crossing the frame.
+    const lane = Math.max(0, Math.min(1, .5 - pose[0] / width));
+    const start = lane * .46 + (index % 5) * .024;
+    const step = ease(start, start + .40, progress);
+    if (step === 0) return pose;
+    if (step === 1) return hidden.slice();
+    const out = pose.slice();
+    const right = width * .5 * (1 - pose[2] / camera) + Math.hypot(pose[6], pose[9]);
+    const arc = Math.sin(Math.PI * step);
+    out[0] += Math.max(0, right - pose[0]) * step;
+    out[1] -= pose[6] * .48 * arc;
+    out[4] += .16 * arc;
+    out[7] += .11 * arc;
+    return out;
+  });
+}
+
+export function questionsCoverPoses(progress, width, height) {
+  const rest = ease(1, 1.55, progress);
+  const ribbons = sectionCoverPoses(5, .10 + .11 * rest, 0, width, height, height * .65);
+  if (progress >= 1) return ribbons;
+  return ribbons.map((pose, index) => {
+    if (pose[6] === 0) return pose;
+    const lag = ribbonRank.get(index) / (relatedOrder.length - 1) * .60;
+    const local = Math.max(0, Math.min(1, (progress - lag) / .40));
+    if (local === 0) return hidden.slice();
+
+    const travel = ease(0, .86, local);
+    const wave = Math.sin(Math.PI * travel);
+    const tail = Math.max(0, (local - .86) / .14);
+    const settle = Math.sin(Math.PI * tail) ** 2 * (1 - tail);
+    const [x, y] = pose;
+    const fromRight = index < 8 || index >= 24;
+    const scale = 1 - pose[2] / (Math.max(width, height) * 1.65);
+    const startX = (fromRight ? 1 : -1) * (width * .50 * scale + pose[6] * .69);
+    const startY = (fromRight ? -.46 : -.19) * height + y * .17;
+    const sheet = pose.slice();
+    sheet[0] += (startX - x) * (1 - travel) + pose[6] * .065 * settle;
+    sheet[1] += (startY - y) * (1 - travel) - height * (fromRight ? .17 : .08) * wave + 3 * settle;
+    sheet[2] -= pose[6] * .54 * wave;
+    sheet[3] += .44 * (1 - travel);
+    sheet[4] += .36 * wave;
+    sheet[5] += (fromRight ? .52 : -.44) * (1 - travel) + .13 * settle;
+    sheet[7] += .14 * wave + .10 * settle;
+    sheet[8] += .28 * wave;
+    return sheet;
+  });
+}
+
+export function studyOpeningRing(progress, width, height, questionsBand) {
+  const open = ease(.12, 1, progress);
+  const top = questionsBand + height * (-.20 + .67 * open);
+  return comparisonRingPoses(1, width, height, top, Math.PI * .50 + .62 * open);
+}
+
+function sweepPapers(from, to, progress, width, height, flattening) {
+  if (progress <= 0) return from;
+  if (progress >= 1) return to;
+  const base = Math.min(width, height);
+  const camera = Math.max(width, height) * 1.65;
+  const beyondEdge = pose => width * .5 * (1 - pose[2] / camera) + Math.hypot(pose[6], pose[9]);
+  return from.map((source, index) => {
+    const target = to[index];
+    if (!source[6] && !target[6]) return source;
+    const rank = ribbonRank.get(index) ?? index;
+    const lag = flattening ? (index % 7) * .036 : Math.floor(rank / 9) * .09 + (rank % 9) * .009;
+    const travel = ease(lag, lag + .72, progress);
+    if (travel === 0) return source;
+    if (travel === 1) return target;
+
+    // Keep pages at full size beside the stage instead of growing them in
+    // from an empty slot. The crossing sheets turn through a diagonal arc.
+    const a = source[6] ? source : target.slice();
+    const b = target[6] ? target : source.slice();
+    if (!source[6]) a[0] = beyondEdge(target);
+    if (!target[6]) b[0] = -beyondEdge(source);
+    const arc = Math.sin(Math.PI * travel);
+    const pose = a.map((value, axis) => {
+      const difference = b[axis] - value;
+      const delta = axis >= 3 && axis <= 5 ? Math.atan2(Math.sin(difference), Math.cos(difference)) : difference;
+      return value + delta * travel;
+    });
+    pose[0] += base * (flattening ? -.23 : .16) * arc;
+    pose[1] -= height * (flattening ? .04 : .11) * arc;
+    pose[2] -= base * (.12 + (index % 3) * .10) * arc;
+    pose[3] += (flattening ? -.56 : .67) * arc;
+    pose[4] += (flattening ? .38 : -.27) * arc;
+    pose[7] += (flattening ? .095 : .13) * arc;
+    return pose;
+  });
+}
+
+export function studyCoverPoses(progress, flatten, width, height, questionsBand) {
+  const ribbons = sectionCoverPoses(6, .10, 0, width, height, height * .65);
+  if (flatten > 0) {
+    const grid = Array.from({ length: COUNT }, (_, i) => cardPose(i, .64, 0, width, height, 1.32, 0));
+    return sweepPapers(ribbons, grid, flatten, width, height, true);
+  }
+  const ring = studyOpeningRing(1, width, height, questionsBand);
+  return sweepPapers(ring, ribbons, progress, width, height, false);
+}
+
 export function blendSectionCover(poses, ribbons, progress, base) {
   if (progress === 0) return poses;
   if (progress === 1) return ribbons;

@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { ArrowRight, CircleHelp, Layers3, Search, Sparkles, Target } from 'lucide-react';
+import { Citation } from './Citation';
 import { publicAsset } from './publicAsset';
 import { viewportProgress } from './scrollProgress';
 
@@ -81,14 +82,17 @@ function CaseArt({ index, titleId }) {
       const distanceToFront = Math.abs(rotation - Math.round(rotation));
       const pitchStep = 1.18 + .04 * (1 - ease(distanceToFront, .025, .30));
       const wall = 1 - focus;
+      const bleed = index === 0 ? heading.offsetTop + heading.offsetHeight + 12 : 0;
+      const wallBleed = bleed * wall;
       if (index === 0) {
-        canvas.style.setProperty('--case-wall-bleed', (heading.offsetTop + heading.offsetHeight + 12) * wall + 'px');
+        canvas.style.setProperty('--case-wall-bleed', wallBleed + 'px');
       }
       const { width, height: artHeight } = canvas.getBoundingClientRect();
-      const faceWidth = Math.min(width * .76, artHeight * (index === 3 ? .81 : .66), 430);
+      const reelHeight = artHeight - wallBleed;
+      const faceWidth = Math.min(width * .76, reelHeight * (index === 3 ? .81 : .66), 430);
       const faceHeight = faceWidth * 1.18;
       const radius = faceHeight * .94;
-      const gridWidth = Math.min(width * .72, artHeight * .66, 500);
+      const gridWidth = Math.min(width * .72, (reelHeight + bleed) * .66, 500);
       const gridHeight = gridWidth * articles[0].size[1] / articles[0].size[0];
       const panX = Math.min(width * .095, gridWidth * .18) * wall;
       const panY = -gridHeight * .055 * wall;
@@ -118,12 +122,11 @@ function CaseArt({ index, titleId }) {
         const y = Math.sin(theta) * radius * roll + (featured ? panY : 0);
         const z = (Math.cos(theta) - 1) * radius * roll;
         const grid = featured ? wall : 0;
-        const zoom = featured ? 1 + .12 * Math.sin(Math.PI * ease(focus, 0, .83)) : 1;
         const [imageWidth, imageHeight] = articles[slot].size;
         const aspect = imageWidth / imageHeight;
         const availableWidth = faceWidth + (gridWidth - faceWidth) * grid;
         const availableHeight = faceHeight + (gridHeight - faceHeight) * grid;
-        const sheetWidth = Math.min(availableWidth, availableHeight * aspect) * zoom;
+        const sheetWidth = Math.min(availableWidth, availableHeight * aspect);
         const sheetHeight = sheetWidth / aspect;
         const bendAngle = curl * sheetHeight / radius;
         const bendRadius = curl > 0 ? radius / curl : 0;
@@ -266,7 +269,7 @@ function Sensecape() {
     </div>
     <Rise><Callout icon={Sparkles} tone="peach" title="Research Implication">Make information movable so users have a way to inspect the task.</Callout></Rise>
     <Rise><Callout icon={Target} tone="navy" title="Evidence Boundary">Two items can share a topic without depending on one another during execution.</Callout></Rise>
-    <Rise><p className="case-note"><a href="#ref-05">[5]</a> Suh et al., UIST 2023. Sensecape: Enabling Multilevel Exploration and Sensemaking with Large Language Models.</p></Rise>
+    <Rise><p className="case-note"><Citation>[5]</Citation> Suh et al., UIST 2023. Sensecape: Enabling Multilevel Exploration and Sensemaking with Large Language Models.</p></Rise>
   </>;
 }
 
@@ -277,7 +280,7 @@ function Provenance() {
     </Section>
     <Rise>
       <Figure file="node-flow-interface" alt="Node Flow canvas with linked image outputs and a workflow editor open on the right.">
-        Yu et al. (2024), Figure 7. Workflow UI after backtracking. The right panel edits the workflow. <a href="#ref-03">[3]</a>
+        Yu et al. (2024), Figure 7. Workflow UI after backtracking. The right panel edits the workflow. <Citation>[3]</Citation>
       </Figure>
     </Rise>
     <Section title="Research Implication">
@@ -295,7 +298,7 @@ function Provenance() {
         Is an earlier condition still valid?<br />Which later outputs depend on it?<br />How can the user verify the change?
       </Callout>
     </Section>
-    <Rise><p className="case-note"><a href="#ref-03">[3]</a> Yu et al., DRS 2024, Fig. 7. · <a href="#ref-09">[9]</a> Ragan et al., TVCG 2016, Table 1 excerpt. · <a href="#ref-10">[10]</a> Xu et al., CGF 2020, Fig. 1. The research implication is this study’s interpretation.</p></Rise>
+    <Rise><p className="case-note"><Citation>[3]</Citation> Yu et al., DRS 2024, Fig. 7. · <Citation>[9]</Citation> Ragan et al., TVCG 2016, Table 1 excerpt. · <Citation>[10]</Citation> Xu et al., CGF 2020, Fig. 1. The research implication is this study’s interpretation.</p></Rise>
   </>;
 }
 
@@ -304,7 +307,7 @@ function Debugging() {
     <Section title="Inspect → Edit → Rerun">
       <p>See the step. Change the step. Check the result.</p>
       <Figure file="ai-chains-interface" alt="AI Chains compares an unchained prompt with editable intermediate steps in a prompt chain.">
-        AI Chains · Fig. 1 <a href="#ref-06">[6]</a>
+        AI Chains · Fig. 1 <Citation>[6]</Citation>
       </Figure>
       <p>Editable prompt steps make the chain inspectable.</p>
     </Section>
@@ -323,7 +326,7 @@ function Debugging() {
     <Section title="Still to Test">
       <div className="case-pair case-tests"><strong>Right scope?</strong><strong>Real effect?</strong></div>
     </Section>
-    <Rise><p className="case-note"><a href="#ref-06">[6]</a> AI Chains · <a href="#ref-07">[7]</a> AGDebugger. Compare the updated output with the intended change to verify the fix.</p></Rise>
+    <Rise><p className="case-note"><Citation>[6]</Citation> AI Chains · <Citation>[7]</Citation> AGDebugger. Compare the updated output with the intended change to verify the fix.</p></Rise>
   </>;
 }
 
@@ -335,7 +338,7 @@ const graphImplications = [
 
 function WorkflowGraph() {
   return <>
-    <Section title={<>Core Idea / Trace2Flow <a className="citation" href="#ref-08">[8]</a></>}>
+    <Section title={<>Core Idea / Trace2Flow <Citation>[8]</Citation></>}>
       <p className="case-statement">Represent the execution process as a graph.</p>
     </Section>
     <Rise className="case-workflow-figure">
@@ -365,7 +368,7 @@ function WorkflowGraph() {
         <p>arXiv v2 preprint.</p>
       </aside>
     </Rise>
-    <Rise><p className="case-note"><a href="#ref-08">[8]</a> Wu et al., Trace2Flow, arXiv:2609.13136v2, Figure 1.</p></Rise>
+    <Rise><p className="case-note"><Citation>[8]</Citation> Wu et al., Trace2Flow, arXiv:2609.13136v2, Figure 1.</p></Rise>
   </>;
 }
 

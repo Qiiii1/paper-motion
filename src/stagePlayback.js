@@ -84,30 +84,40 @@ export function useStagePlayback(track) {
       const runway = target.node.previousElementSibling;
       const connectedCover = direction > 0 && target.node.hasAttribute('data-approach-cover');
       const comparisonCover = direction > 0 && target.node.hasAttribute('data-comparison-cover');
+      const questionsCover = direction > 0 && target.node.hasAttribute('data-questions-cover');
+      const designCover = direction > 0 && target.node.hasAttribute('data-design-cover');
       const literature = target.node.classList.contains('literature-chapter');
       const supportDeparture = direction > 0 && target.node.matches('.research-gap')
         ? runway?.querySelector('.research-support-departure')
         : null;
+      const gapDeparture = questionsCover ? runway?.querySelector('.research-gap-outro') : null;
+      const questionsDeparture = designCover ? runway?.querySelector('.questions-outro') : null;
       const example = direction > 0 && runway?.matches('.example-chapter') ? runway : null;
       // Play straight through the last outgoing sheet and the first incoming
       // Literature Map sheet, without an ease-to-stop at the empty boundary.
       const firstStop = example ? pageY(example.querySelector('.example-exit-start'))
         : supportDeparture ? pageY(supportDeparture) - window.innerHeight
+        : gapDeparture ? pageY(gapDeparture) - runway.firstElementChild.offsetHeight
+        : questionsDeparture ? pageY(questionsDeparture) - window.innerHeight
         : literature ? to
         : comparisonCover ? target.at - COMPARISON_COVER_LEAD * target.node.firstElementChild.offsetHeight
         : arrival ? target.at
         : connectedCover ? to - APPROACH_COVER_LEAD * window.innerHeight
         : direction > 0 && target.node.id !== 'chapter-02' && runway?.matches('.motion-runway')
         ? pageY(runway) : to;
-      const transitionTime = example ? 2720 : comparisonCover ? 2100 : supportDeparture ? 1850 : arrival ? 1480 : connectedCover ? 1320
+      const transitionTime = example ? 2720 : questionsCover || designCover ? 2450 : comparisonCover ? 2100 : supportDeparture ? 1850 : arrival ? 1480 : connectedCover ? 1320
         : target.node.id === 'chapter-03' ? 1800 : 1360;
       const separateTransition = firstStop > from + 24 && firstStop < to - 24;
       const destination = separateTransition ? firstStop : to;
       const distance = Math.abs(destination - from) / window.innerHeight;
       let duration = Math.min(720, 380 + distance * 125);
       if (!separateTransition) {
-        if (target.node.classList.contains('research-support')) {
+        if (target.node.matches('.research-questions, #research-design')) {
+          duration = 1520;
+        } else if (target.node.matches('.research-support')) {
           duration = 1420;
+        } else if (questionsCover || designCover) {
+          duration = 2380;
         } else if (literature || target.node.hasAttribute('data-related-cover')) {
           duration = Math.min(3700, 1000 + distance * 1150);
         } else if (arrival || target.node.hasAttribute('data-motion')) {

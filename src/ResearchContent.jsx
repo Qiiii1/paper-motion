@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { chapterId, count, motion, number } from './research';
-import { PrototypeSequence, prototypeTitle } from './PrototypeSequence';
+import { Citation } from './Citation';
 import { ResearchStack } from './ResearchStack';
 import { ResearchApproach } from './ResearchApproach';
 import { ResearchScope } from './ResearchScope';
@@ -10,13 +10,12 @@ import { LiteratureCase } from './LiteratureCase';
 import { ResearchPartCover } from './ResearchPartCover';
 import { ResearchComparison } from './ResearchComparison';
 
+const lastStoryChapter = 14;
+
 function Copy({ text }) {
-  return text.split(/(\[\d+(?:[–,-]\d+)*\])/g).map((part, index) => {
-    const reference = /^\[(\d+)/.exec(part);
-    return reference
-      ? <a key={index} className="citation" href={'#ref-' + number(reference[1])}>{part}</a>
-      : <Fragment key={index}>{part}</Fragment>;
-  });
+  return text.split(/(\[\d+(?:[–,-]\d+)*\])/g).map((part, index) => index % 2 === 1
+    ? <Citation key={index}>{part}</Citation>
+    : part);
 }
 
 function ResearchTable({ rows }) {
@@ -118,7 +117,7 @@ export function OpeningCover({ edition, ui }) {
 
 export function ResearchChapters({ edition, ui, lang }) {
   return <>
-    {edition.chapters.slice(1).map(({ title, blocks, steps, layout }, index) => {
+    {edition.chapters.slice(1, lastStoryChapter).map(({ title, blocks, steps, layout }, index) => {
       const chapter = index + 2;
       if (chapter >= 7 && chapter <= 9) return null;
       const id = chapterId(chapter);
@@ -126,8 +125,6 @@ export function ResearchChapters({ edition, ui, lang }) {
       return <Fragment key={id}>
         {chapter === 3 && <ResearchPartCover part={1} />}
         {chapter === 10 && <ResearchPartCover part={2} />}
-        {chapter === 15 && <ResearchComparison />}
-        {chapter === 20 && <PrototypeSequence lang={lang} />}
         {phase !== undefined && <div className={'motion-runway runway-' + chapter}
           data-art-covered={chapter === 10 ? '' : undefined} data-play-surface aria-hidden="true" />}
         {steps
@@ -177,29 +174,7 @@ export function ResearchChapters({ edition, ui, lang }) {
           </section>}
       </Fragment>;
     })}
-    <section className="research-chapter reference-chapter" id="references" data-chapter aria-labelledby="references-title">
-      <div className="reading-panel">
-        <div className="reading-grid">
-          <header className="chapter-title">
-            <p className="chapter-kicker">01–16</p>
-            <h2 id="references-title" tabIndex={-1}>{edition.references.title}</h2>
-          </header>
-          <div className="chapter-copy">
-            {edition.references.blocks.map((block, i) => {
-              if (block.kind !== 'ref') return <Paragraph key={i} block={block} />;
-              const [, index, citation] = /^\[(\d+)\] (.+)$/.exec(block.citation);
-              return <article className="reference-entry" id={'ref-' + number(index)} key={index}>
-                <p><span className="reference-number">[{index}]</span> {citation}</p>
-                {block.translation && <p className="reference-meta">{block.translation}</p>}
-                <a href={block.url} target="_blank" rel="noreferrer">{block.url}</a>
-                {block.extra && <p className="reference-meta">{block.extra}</p>}
-              </article>;
-            })}
-            <a className="return-link" href="#opening">↑ {ui.back}</a>
-          </div>
-        </div>
-      </div>
-    </section>
+    <ResearchComparison />
   </>;
 }
 
@@ -210,16 +185,17 @@ export function ResearchNavigation({ edition, ui, lang, switchLanguage, playback
     <label className="chapter-picker">
       <span aria-hidden="true">{ui.contents} <span>⌄</span></span>
       <select aria-label={ui.contents} value={active} onChange={event => jump(event.target.value)}>
-        {edition.chapters.map(({ title }, i) => <Fragment key={i}>
-          {i === 19 && <option value="prototype">{prototypeTitle(lang)}</option>}
-          <option value={chapterId(i + 1)}>{number(i + 1)} {title}</option>
-        </Fragment>)}
-        <option value="references">{ui.references}</option>
+        {edition.chapters.slice(0, lastStoryChapter).map(({ title }, i) =>
+          <option key={i} value={chapterId(i + 1)}>{number(i + 1)} {title}</option>)}
+        <option value="research-questions">Research Questions</option>
+        <option value="part-06">06 Research Design</option>
+        <option value="research-design">Research Design</option>
+        <option value="research-process">Research Process</option>
       </select>
     </label>
     <div className="chapter-steps">
       {active !== 'opening' && <button data-playback aria-label={ui.previous} aria-disabled={playing} onClick={() => step(-1)}>←</button>}
-      {active !== 'references' && <button data-playback className="next-chapter" aria-disabled={playing} onClick={() => step(1)}>
+      {active !== 'research-process' && <button data-playback className="next-chapter" aria-disabled={playing} onClick={() => step(1)}>
         {active === 'opening' ? ui.start : ui.next} <span aria-hidden="true">→</span>
       </button>}
     </div>

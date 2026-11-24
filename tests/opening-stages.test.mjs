@@ -44,7 +44,7 @@ test('scrolling the grid slides adjacent rows along their projected diagonals',(
   for(const [width,height] of [[390,844],[555,823],[1360,880]]){
     const camera=Math.max(width,height)*1.65;
     const grid=travel=>keepCardsApart(Array.from({length:COUNT},(_,i)=>
-      cardPose(i,.64,0,width,height,1.32,0,0,0,travel)));
+      cardPose(i,.64,0,width,height,1.32,0,0,0,travel)),camera);
     const project=([x,y,z])=>[x,y].map(value=>value/(1-z/camera));
     const start=grid(0);
     let previous=start;
@@ -54,7 +54,8 @@ test('scrolling the grid slides adjacent rows along their projected diagonals',(
         const direction=Math.floor(i/7)%2 ? -1 : 1;
         const [x,y]=project(card), [px,py]=project(previous[i]);
         assert.ok(direction*(x-px)>0 && direction*(y-py)<0);
-        assert.deepEqual(card.slice(3),start[i].slice(3));
+        assert.deepEqual([card.slice(3,6),card.slice(7,9),card[10]],
+          [start[i].slice(3,6),start[i].slice(7,9),start[i][10]]);
         const [sx,sy]=project(start[i]);
         const [nx,ny]=project(start[i%7===0 ? i+1 : i-1]);
         assert.ok(Math.abs((x-sx)*(ny-sy)-(y-sy)*(nx-sx))<1e-7);

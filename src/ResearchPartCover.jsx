@@ -1,17 +1,18 @@
 import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { ease } from './choreography';
-import { keepCardsApart } from './cardClearance';
 import { createDOMRenderer, createRenderer, loadPages } from './renderer';
 import { COMPARISON_COVER_LEAD, COMPARISON_RING_SETTLE, relatedTitleReveal, sectionCoverPoses } from './sectionCoverMotion';
 import { viewportProgress } from './scrollProgress';
 import { useScrollScene } from './scrollScene';
 
 const light = { edge: 0, exposure: .16 };
-const parts = [
-  { id: 'part-01', number: '01', title: ['Research', 'Background'] },
-  { id: 'part-02', number: '02', title: ['Related', 'Research'] },
-  { id: 'part-03', number: '03', title: ['Comparison', '& critique'] },
-];
+const parts = {
+  1: { id: 'part-01', number: '01', title: ['Research', 'Background'] },
+  2: { id: 'part-02', number: '02', title: ['Related', 'Research'] },
+  3: { id: 'part-03', number: '03', title: ['Comparison', '& critique'] },
+  5: { id: 'part-05', number: '05', title: ['Research', 'Questions'] },
+  6: { id: 'part-06', number: '06', title: ['Research', 'Design'] },
+};
 
 export function PartCoverArtwork({ part, near, progress = 1, describeFrame }) {
   const picture = useRef(null);
@@ -41,7 +42,7 @@ export function PartCoverArtwork({ part, near, progress = 1, describeFrame }) {
       const time = motion ? position * 4 : 0;
       const paperFrame = describeFrame?.(w, h, motion, host.getBoundingClientRect().top, aspects, now);
       const poses = paperFrame?.poses ?? sectionCoverPoses(part, position, time, w, h);
-      renderer.draw(keepCardsApart(poses), w, h, paperFrame?.time ?? time, paperFrame?.light ?? light);
+      renderer.draw(poses, w, h, paperFrame?.time ?? time, paperFrame?.light ?? light);
       if (paperFrame?.animate) queue();
     }
     function queue() {
@@ -89,22 +90,29 @@ export function PartCoverArtwork({ part, near, progress = 1, describeFrame }) {
 }
 
 export function ResearchPartCover({ part }) {
-  const { id, number, title } = parts[part - 1];
+  const { id, number, title } = parts[part];
   const { root, progress, position, near, top } = useScrollScene();
   const connected = part === 1;
   const related = part === 2;
   const comparison = part === 3;
+  const questions = part === 5;
+  const design = part === 6;
   const viewport = window.innerHeight;
   const entry = viewportProgress(top, viewport, .42, .06);
   const comparisonHeight = comparison ? root.current?.firstElementChild.offsetHeight ?? viewport : viewport;
   const comparisonEntry = viewportProgress(top, comparisonHeight, COMPARISON_COVER_LEAD, -COMPARISON_RING_SETTLE);
   const titleProgress = comparison
     ? ease(.69, 1, comparisonEntry) * (1 - ease(.48, .61, position))
-    : related ? relatedTitleReveal(position) : Math.min(entry, 1 - ease(.86, 1, progress));
+    : related ? relatedTitleReveal(position)
+    : questions ? ease(.33, .43, position) * (1 - ease(.52, .66, position))
+    : design ? ease(.33, .45, position) * (1 - ease(.53, .67, position))
+    : Math.min(entry, 1 - ease(.86, 1, progress));
   return <section className="part-cover" id={id} ref={root} data-chapter data-play-surface
     data-approach-cover={connected ? '' : undefined} data-art-covered={!connected ? '' : undefined}
     data-related-cover={related ? '' : undefined}
     data-comparison-cover={comparison ? '' : undefined}
+    data-questions-cover={questions ? '' : undefined}
+    data-design-cover={design ? '' : undefined}
     data-cover-reading={titleProgress > 0 ? '' : undefined}
     data-related-active={related && top <= 0 ? '' : undefined}
     aria-labelledby={id + '-title'} style={{ '--part-reveal': titleProgress }}>
@@ -121,5 +129,7 @@ export function ResearchPartCover({ part }) {
     </div>
     {related && <span id="related-research-ready" className="related-arrival" data-scene-arrival aria-hidden="true" />}
     {comparison && <span className="comparison-arrival" data-scene-arrival aria-hidden="true" />}
+    {questions && <span className="questions-arrival" data-scene-arrival aria-hidden="true" />}
+    {design && <span className="design-arrival" data-scene-arrival aria-hidden="true" />}
   </section>;
 }
