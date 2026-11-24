@@ -1,6 +1,4 @@
 import React, { useId } from 'react';
-import { COUNT, onRing } from './choreography';
-import { PartCoverArtwork } from './ResearchPartCover';
 import { StudyChapter, StudyReveal } from './ResearchStudy';
 import { useScrollScene } from './scrollScene';
 import './publicationTrends.css';
@@ -29,54 +27,26 @@ const themes = [
 ];
 const maxHits = Math.max(...themes.map(({ total }) => total));
 
-const paperSlots = new Map([3, 4, 1, 2, 5, 9, 7, 8].map((sheet, index) => [sheet, index]));
-const hiddenPaper = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-function describePapers(width, height, motion, top) {
-  const base = Math.min(width, height);
-  const camera = Math.max(width, height) * 1.65;
-  const pitch = -.78, roll = -.26;
-  const sinPitch = Math.sin(pitch), cosPitch = Math.cos(pitch);
-  const sinRoll = Math.sin(roll), cosRoll = Math.cos(roll);
-  const travel = motion ? Math.max(0, -top) : 0;
-  const turn = .35 - travel / Math.max(80, height * .78) * 1.7;
-  const poses = Array.from({ length: COUNT }, (_, sheet) => {
-    const slot = paperSlots.get(sheet);
-    if (slot === undefined) return hiddenPaper;
-    const angle = turn + slot * 2 * Math.PI / paperSlots.size;
-    const pose = onRing(angle, base * .38, base * .43, -height * .05, pitch, roll, false, .09);
-    pose[0] += width * .15;
-    const [x, y, z] = pose;
-    const sinYaw = Math.sin(angle), cosYaw = Math.cos(angle);
-    const normalX = cosRoll * sinYaw + sinRoll * sinPitch * cosYaw;
-    const normalY = sinRoll * sinYaw - cosRoll * sinPitch * cosYaw;
-    const normalZ = cosPitch * cosYaw;
-    if ((camera - z) * normalZ < x * normalX + y * normalY) {
-      // Turn the print around while preserving the curved sheet's geometry.
-      pose[3] += Math.PI;
-      pose[7] *= -1;
-    }
-    pose[8] = .09;
-    return pose;
-  });
-  return { poses, time: 0 };
-}
-
-function SearchHits() {
+function SearchHits({ top }) {
+  // The totals climb with the reader: bars fill and the numbers count up as the
+  // block rises into view, then hold at their real values.
+  const viewport = typeof window === 'undefined' ? 800 : window.innerHeight;
+  const climb = Math.max(0, Math.min(1, (viewport * .95 - top) / (viewport * .50)));
+  const grow = climb * climb * (3 - 2 * climb);
   return <div className="trends-counts">
     <p className="trends-kicker">Initial Search · Four Themes</p>
     <div className="trends-count-columns">
       <div className="trends-total">
-        <strong>250</strong>
+        <strong>{Math.round(250 * grow)}</strong>
         <span>unique search<br />records</span>
       </div>
       <div className="trends-hits">
         <p className="trends-kicker">Search Hits by Theme</p>
         <dl>
           {themes.map(({ label, total, fill, ink }) => <div className="trends-hit" key={label}
-            style={{ '--trend-fill': fill, '--trend-ink': ink, '--trend-width': (total / maxHits * 100) + '%' }}>
+            style={{ '--trend-fill': fill, '--trend-ink': ink, '--trend-width': (total / maxHits * 100 * grow) + '%' }}>
             <dt>{label}<span className="trends-bar" aria-hidden="true" /></dt>
-            <dd>{total}</dd>
+            <dd>{Math.round(total * grow)}</dd>
           </div>)}
         </dl>
       </div>
@@ -203,12 +173,9 @@ function TrendChart() {
 }
 
 export function PublicationTrends() {
-  const { root, near } = useScrollScene();
-  const artwork = <div className="publication-artwork">
-    <PartCoverArtwork near={near} describeFrame={describePapers} />
-  </div>;
-  return <StudyChapter scene={root} id="publication-trends" title={<>Publication<br />Trends</>} backdrop={artwork}>
-    <StudyReveal className="trends-count-mask"><SearchHits /></StudyReveal>
+  const { root, top } = useScrollScene();
+  return <StudyChapter scene={root} id="publication-trends" title={<>Publication<br />Trends</>}>
+    <StudyReveal className="trends-count-mask"><SearchHits top={top} /></StudyReveal>
     <StudyReveal className="trends-figure-mask"><TrendChart /></StudyReveal>
     <StudyReveal className="trends-takeaway-mask">
       <p className="trends-takeaway">

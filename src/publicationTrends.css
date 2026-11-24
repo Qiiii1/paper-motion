@@ -16,15 +16,6 @@
   font-size: clamp(30px, 11.9vw, 72px);
   line-height: 1.07;
 }
-.publication-artwork {
-  position: absolute;
-  top: -10px;
-  right: -7px;
-  width: clamp(130px, 35vw, 255px);
-  height: clamp(126px, 36vw, 220px);
-  pointer-events: none;
-}
-.publication-artwork .part-cover-art { inset: 0; }
 
 .trends-count-mask { margin-top: clamp(26px, 8.7vw, 50px); }
 .trends-kicker {
@@ -62,13 +53,15 @@
 }
 .trends-hit {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 3ch;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
 }
 .trends-hit dt { font-size: clamp(10px, 2.9vw, 16px); line-height: 1.23; }
 .trends-hit dd {
   margin: 0;
+  text-align: right;
+  white-space: nowrap;
   color: var(--trend-ink);
   font: 740 clamp(11px, 3.4vw, 19px)/1.1 var(--heading);
   font-variant-numeric: tabular-nums;
