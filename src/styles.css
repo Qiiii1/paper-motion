@@ -1658,3 +1658,31 @@ a { color: var(--blue); text-decoration-thickness: 1px; text-underline-offset: .
   .approach-steps { gap: clamp(5px, 1.6svh, 9px); }
   .approach-steps li, .approach-arrow { font-size: clamp(15px, 4.8svh, 22px); }
 }
+
+/* Presentation control: a bare surface until the pointer moves, and the F key
+   does the same thing. */
+.present-mode {
+  position: fixed;
+  left: max(14px, env(safe-area-inset-left));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid #2323312e;
+  border-radius: 50%;
+  background: #f8f8faed;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .25s ease, transform .25s ease;
+  cursor: pointer;
+}
+.present-mode.is-awake,
+.present-mode:focus-visible { opacity: .62; transform: none; }
+.present-mode:hover { opacity: 1; }
+.present-mode.is-presenting.is-awake,
+.present-mode.is-presenting:focus-visible { opacity: .5; }
+@media (prefers-reduced-motion: reduce) { .present-mode { transition: none; } }

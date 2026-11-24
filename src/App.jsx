@@ -3,6 +3,7 @@ import { PaperStage } from './PaperStage';
 import { OpeningCover, ResearchChapters } from './ResearchContent';
 import { edition, messages, pageY } from './research';
 import { useStagePlayback } from './stagePlayback';
+import { PresentMode } from './PresentMode';
 
 export function App() {
   const track = useRef(null);
@@ -45,5 +46,6 @@ export function App() {
         <ResearchChapters edition={edition} ui={messages} lang="en" />
       </div>
     </div>
+    <PresentMode />
   </main>;
 }
