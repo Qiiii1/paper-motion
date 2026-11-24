@@ -206,6 +206,7 @@ const figureSizes = {
   'provenance-analysis': [158, 121],
   'ai-chains-interface': [350, 180],
   'agdebugger-interface': [350, 209],
+  'trace2flow-workflow': [700, 572],
 };
 
 function Figure({ file, alt, children }) {
@@ -347,8 +348,8 @@ function WorkflowGraph() {
       <p className="case-statement">Represent the execution process as a graph.</p>
     </Section>
     <Rise className="case-workflow-figure">
-      <Figure file="node-flow-interface" alt="Node Flow example showing linked execution steps and a workflow editor.">
-        Node Flow example · Placeholder for Trace2Flow Figure 1
+      <Figure file="trace2flow-workflow" alt="Trace2Flow figure: step one delegates a task to the agent, step two translates the agent trace into an editable workflow graph of browse, adapt, read, LLM and append steps, and steps three a and b show inspecting the process and reusing the workflow for a new task.">
+        Trace2Flow · Fig. 1 <Citation>[8]</Citation>
       </Figure>
     </Rise>
     <Section title="Research Implication">
