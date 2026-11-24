@@ -1,6 +1,8 @@
-import { COUNT, ease } from './choreography.js';
+import { cardPose, COUNT, ease, onRing } from './choreography.js';
 
 export const APPROACH_COVER_LEAD = 1.34;
+export const COMPARISON_COVER_LEAD = .60;
+export const COMPARISON_RING_SETTLE = .76;
 const hidden = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 // Follow the three runs of the illustration. The final sheet to leave is
@@ -82,6 +84,59 @@ export function sectionCoverPoses(part, progress, time, width, height, artHeight
         .22 + .11 * s, -.99 + .61 * s, .21 + .18 * s, -.23 - .37 * s);
     }
     return hidden.slice();
+  });
+}
+
+const comparisonSheets = 24;
+
+export function comparisonRingPoses(progress, width, height, plateTop = height, turn = 0) {
+  const base = Math.min(width, height);
+  const radius = Math.min(width * .54, height * .62);
+  const camera = Math.max(width, height) * 1.65;
+  // The same ring rises above the reading plate. Correct for perspective
+  // so the front and rear sheets move upward by the same screen distance.
+  const lift = Math.max(0, height - plateTop);
+  const center = height * .38 - lift * .28;
+  const beat = progress * (comparisonSheets + 1);
+  return Array.from({ length: COUNT }, (_, index) => {
+    if (index >= comparisonSheets) return hidden.slice();
+    const landing = ease(index, index + 2, beat);
+    if (landing === 0) return hidden.slice();
+
+    const angle = turn - .5 * Math.PI + .016 + 2 * Math.PI * index / comparisonSheets;
+    const pose = onRing(angle, radius, base * .31, 0, -.135, 0, true, .064);
+    const scale = 1 - pose[2] / camera;
+    const settledY = pose[1] + (center - height / 2) * scale;
+    const startY = -height * .5 * scale - pose[9] * .6;
+    const curl = Math.sin(Math.PI * landing);
+    pose[1] = startY + (settledY - startY) * landing;
+    pose[4] += .18 * curl;
+    pose[7] += .095 * curl;
+    pose[8] = .21 + .30 * curl;
+    return pose;
+  });
+}
+
+export function researchGapPaperPoses(ring, progress, time, width, height, aspects) {
+  if (progress === 0) return ring;
+  const gathered = ease(0, .38, progress);
+  return ring.map((pose, index) => {
+    const scattered = cardPose(index, 0, time, width, height, aspects[index % aspects.length], time);
+    if (progress === 1) return scattered;
+
+    const start = .18 + (index % 8) * .023;
+    const spread = ease(start, start + .56, progress);
+    const origin = pose.slice();
+    origin[0] *= 1 - gathered * .88;
+    origin[1] *= 1 - gathered;
+    origin[2] *= 1 - gathered * .80;
+    origin[6] *= 1 - gathered * .67;
+    origin[9] *= 1 - gathered * .67;
+    return origin.map((value, axis) => {
+      const change = scattered[axis] - value;
+      const delta = axis >= 3 && axis <= 5 ? Math.atan2(Math.sin(change), Math.cos(change)) : change;
+      return value + spread * delta;
+    });
   });
 }
 

@@ -17,7 +17,7 @@ function between(a,b,t) {
   });
 }
 
-function onRing(angle,radius,width,cy,pitch,roll,radial,bend) {
+export function onRing(angle,radius,width,cy,pitch,roll,radial,bend) {
   const x=radius*Math.sin(angle), z=radius*Math.cos(angle);
   const y=-Math.sin(pitch)*z;
   return [x*Math.cos(roll)-y*Math.sin(roll), cy+x*Math.sin(roll)+y*Math.cos(roll),

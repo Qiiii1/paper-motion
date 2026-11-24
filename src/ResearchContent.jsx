@@ -8,6 +8,7 @@ import { ResearchExample } from './ResearchExample';
 import { ResearchLiterature } from './ResearchLiterature';
 import { LiteratureCase } from './LiteratureCase';
 import { ResearchPartCover } from './ResearchPartCover';
+import { ResearchComparison } from './ResearchComparison';
 
 function Copy({ text }) {
   return text.split(/(\[\d+(?:[–,-]\d+)*\])/g).map((part, index) => {
@@ -125,7 +126,7 @@ export function ResearchChapters({ edition, ui, lang }) {
       return <Fragment key={id}>
         {chapter === 3 && <ResearchPartCover part={1} />}
         {chapter === 10 && <ResearchPartCover part={2} />}
-        {chapter === 15 && <ResearchPartCover part={3} />}
+        {chapter === 15 && <ResearchComparison />}
         {chapter === 20 && <PrototypeSequence lang={lang} />}
         {phase !== undefined && <div className={'motion-runway runway-' + chapter}
           data-art-covered={chapter === 10 ? '' : undefined} data-play-surface aria-hidden="true" />}

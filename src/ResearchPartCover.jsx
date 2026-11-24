@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { ease } from './choreography';
 import { keepCardsApart } from './cardClearance';
 import { createDOMRenderer, createRenderer, loadPages } from './renderer';
-import { relatedTitleReveal, sectionCoverPoses } from './sectionCoverMotion';
+import { COMPARISON_COVER_LEAD, COMPARISON_RING_SETTLE, relatedTitleReveal, sectionCoverPoses } from './sectionCoverMotion';
 import { viewportProgress } from './scrollProgress';
 import { useScrollScene } from './scrollScene';
 
@@ -13,7 +13,7 @@ const parts = [
   { id: 'part-03', number: '03', title: ['Comparison', '& critique'] },
 ];
 
-function PartCoverArtwork({ part, near, progress }) {
+export function PartCoverArtwork({ part, near, progress = 1, describeFrame }) {
   const picture = useRef(null);
   const canvas = useRef(null);
   const fallback = useRef(null);
@@ -30,18 +30,19 @@ function PartCoverArtwork({ part, near, progress }) {
     const surface = canvas.current;
     const htmlArtwork = fallback.current;
     const media = matchMedia('(prefers-reduced-motion: reduce)');
-    let renderer, pages, frame = 0, stopped = false;
+    let renderer, pages, aspects, frame = 0, stopped = false;
 
-    function draw(timestamp) {
+    function draw(now) {
       frame = 0;
       if (!renderer) return;
       const motion = !media.matches;
       const w = host.clientWidth, h = host.clientHeight;
       const position = motion ? scroll.current : .54;
-      const time = motion ? (part === 2 ? position * 4 : timestamp / 1000) : 0;
-      const poses = sectionCoverPoses(part, position, time, w, h);
-      renderer.draw(keepCardsApart(poses), w, h, time, light);
-      if (motion && part !== 2) queue();
+      const time = motion ? position * 4 : 0;
+      const paperFrame = describeFrame?.(w, h, motion, host.getBoundingClientRect().top, aspects, now);
+      const poses = paperFrame?.poses ?? sectionCoverPoses(part, position, time, w, h);
+      renderer.draw(keepCardsApart(poses), w, h, paperFrame?.time ?? time, paperFrame?.light ?? light);
+      if (paperFrame?.animate) queue();
     }
     function queue() {
       if (!frame && !stopped) frame = requestAnimationFrame(draw);
@@ -58,10 +59,12 @@ function PartCoverArtwork({ part, near, progress }) {
     const resize = new ResizeObserver(queue);
     resize.observe(host);
     media.addEventListener('change', queue);
+    if (describeFrame) window.addEventListener('scroll', queue, { passive: true });
     surface.addEventListener('webglcontextlost', useFallback);
     loadPages().then(images => {
       if (stopped) return;
       pages = images;
+      aspects = images.map(image => image.naturalHeight / image.naturalWidth);
       try { renderer = createRenderer(surface, images); } catch (error) { console.warn(error); }
       surface.hidden = !renderer;
       if (!renderer) useFallback();
@@ -74,9 +77,10 @@ function PartCoverArtwork({ part, near, progress }) {
       resize.disconnect();
       renderer?.dispose();
       media.removeEventListener('change', queue);
+      if (describeFrame) window.removeEventListener('scroll', queue);
       surface.removeEventListener('webglcontextlost', useFallback);
     };
-  }, [near, part]);
+  }, [near, part, describeFrame]);
 
   return <div className="part-cover-art" ref={picture} aria-hidden="true">
     <canvas className="scene" ref={canvas} />
@@ -89,18 +93,23 @@ export function ResearchPartCover({ part }) {
   const { root, progress, position, near, top } = useScrollScene();
   const connected = part === 1;
   const related = part === 2;
-  const entry = viewportProgress(top, window.innerHeight, .42, .06);
-  const titleProgress = related
-    ? relatedTitleReveal(position)
-    : Math.min(entry, 1 - ease(.86, 1, progress));
+  const comparison = part === 3;
+  const viewport = window.innerHeight;
+  const entry = viewportProgress(top, viewport, .42, .06);
+  const comparisonHeight = comparison ? root.current?.firstElementChild.offsetHeight ?? viewport : viewport;
+  const comparisonEntry = viewportProgress(top, comparisonHeight, COMPARISON_COVER_LEAD, -COMPARISON_RING_SETTLE);
+  const titleProgress = comparison
+    ? ease(.69, 1, comparisonEntry) * (1 - ease(.48, .61, position))
+    : related ? relatedTitleReveal(position) : Math.min(entry, 1 - ease(.86, 1, progress));
   return <section className="part-cover" id={id} ref={root} data-chapter data-play-surface
     data-approach-cover={connected ? '' : undefined} data-art-covered={!connected ? '' : undefined}
     data-related-cover={related ? '' : undefined}
+    data-comparison-cover={comparison ? '' : undefined}
+    data-cover-reading={titleProgress > 0 ? '' : undefined}
     data-related-active={related && top <= 0 ? '' : undefined}
-    data-related-reading={related && titleProgress > 0 ? '' : undefined}
     aria-labelledby={id + '-title'} style={{ '--part-reveal': titleProgress }}>
     <div className="part-cover-pin">
-      {!connected && <PartCoverArtwork part={part} near={near} progress={related ? position : progress} />}
+      {related && <PartCoverArtwork part={part} near={near} progress={position} />}
       <h2 className="part-cover-title" id={id + '-title'} aria-label={title.join(' ')} tabIndex={-1}>
         {title.map(line => <span key={line}><span>{line}</span></span>)}
       </h2>
@@ -111,5 +120,6 @@ export function ResearchPartCover({ part }) {
       </nav>
     </div>
     {related && <span id="related-research-ready" className="related-arrival" data-scene-arrival aria-hidden="true" />}
+    {comparison && <span className="comparison-arrival" data-scene-arrival aria-hidden="true" />}
   </section>;
 }

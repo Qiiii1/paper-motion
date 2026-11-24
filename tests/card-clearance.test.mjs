@@ -5,7 +5,7 @@ import { OBB } from 'three/addons/math/OBB.js';
 import { cardPose, COUNT, focusWheelPose } from '../src/choreography.js';
 import { keepCardsApart } from '../src/cardClearance.js';
 import { galleryPose, presetStop } from '../src/presets.js';
-import { blendSectionCover, relatedTitleReveal, sectionCoverPoses } from '../src/sectionCoverMotion.js';
+import { blendSectionCover, comparisonRingPoses, researchGapPaperPoses, relatedTitleReveal, sectionCoverPoses } from '../src/sectionCoverMotion.js';
 
 function windVolume(pose) {
   const [x,y,z,yaw,pitch,roll,w,bend,,h]=pose;
@@ -122,4 +122,69 @@ test('the related research ribbons assemble and clear one sheet per beat', () =>
   }
   assert.equal(lastCount, 0);
   assert.equal(relatedTitleReveal(.54), 1);
+});
+
+test('the comparison cover builds one upright ring and preserves it as the reading plate rises', () => {
+  for (const [width, height] of [[320, 568], [390, 844], [844, 390], [1360, 880]]) {
+    const settled = comparisonRingPoses(1, width, height).filter(pose => pose[6] > 0);
+    const published = comparisonRingPoses(1, width, height, 135).filter(pose => pose[6] > 0);
+    const camera = Math.max(width, height) * 1.65;
+    assert.equal(settled.length, 24);
+    let previous = 0;
+    for (let step = 0; step <= 100; step++) {
+      const poses = comparisonRingPoses(step / 100, width, height);
+      const entering = poses.filter(pose => pose[6] > 0);
+      assert.ok(entering.length - previous >= 0 && entering.length - previous <= 1);
+      assert.ok(entering.every((pose, i) => pose[0] === settled[i][0] && pose[1] <= settled[i][1] + .001));
+      assert.ok(entering.filter((pose, i) => Math.abs(pose[1] - settled[i][1]) > .001).length <= 2);
+      previous = entering.length;
+      const boxes = keepCardsApart(poses).filter(pose => pose[6] > .25).map(windVolume);
+      for (const [index, box] of boxes.entries()) {
+        assert.ok(boxes.slice(0, index).every(other => !box.intersectsOBB(other)));
+      }
+    }
+    assert.equal(previous, settled.length);
+    const radii = settled.map(([x, , z]) => Math.hypot(x, z / Math.cos(.135)));
+    assert.ok(Math.max(...radii) - Math.min(...radii) < .001);
+    published.forEach((pose, i) => {
+      assert.deepEqual([pose[0], ...pose.slice(2)], [settled[i][0], ...settled[i].slice(2)]);
+      const rise = (settled[i][1] - pose[1]) / (1 - pose[2] / camera);
+      assert.ok(Math.abs(rise - (height - 135) * .28) < .001);
+    });
+    for (const turn of [.2, .8, 1.6, 2.4, Math.PI]) {
+      const rotating = comparisonRingPoses(1, width, height, 135, turn).filter(pose => pose[6] > 0);
+      for (const [i, pose] of rotating.entries()) {
+        assert.ok(Math.abs(pose[3] - settled[i][3] - turn) < .001);
+        assert.ok(Math.abs(Math.hypot(pose[0], pose[2] / Math.cos(.135)) - radii[i]) < .001);
+      }
+      const boxes = keepCardsApart(rotating).map(windVolume);
+      for (const [index, box] of boxes.entries()) {
+        assert.ok(boxes.slice(0, index).every(other => !box.intersectsOBB(other)));
+      }
+    }
+  }
+});
+
+
+test('the research gap ring gathers through the center and resolves to the opening flight', () => {
+  const aspects = [1.31, 1.2, 1.49, 1.15, 1.65, 1.11];
+  const time = .62;
+  for (const [width, height] of [[320, 568], [390, 844], [844, 390], [1280, 800]]) {
+    const ring = comparisonRingPoses(1, width, height, height, Math.PI * 1.9);
+    const frame = progress => researchGapPaperPoses(ring, progress, time, width, height, aspects);
+    assert.deepEqual(frame(0), ring);
+    const gathering = frame(.16);
+    for (const [index, initial] of ring.entries()) {
+      if (initial[6] === 0) continue;
+      assert.ok(Math.hypot(...gathering[index].slice(0, 2)) < Math.hypot(...initial.slice(0, 2)));
+    }
+    assert.deepEqual(frame(1), Array.from({ length: COUNT }, (_, i) =>
+      cardPose(i, 0, time, width, height, aspects[i % aspects.length], time)));
+    for (let step = 1; step < 20; step++) {
+      const boxes = keepCardsApart(frame(step / 20)).filter(pose => pose[6] > .25).map(windVolume);
+      for (const [index, box] of boxes.entries()) {
+        assert.ok(boxes.slice(0, index).every(other => !box.intersectsOBB(other)));
+      }
+    }
+  }
 });

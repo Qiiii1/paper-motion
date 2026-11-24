@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { pageY, reducedMotion } from './research';
 import { createSmoothWheel } from './smoothWheel';
-import { APPROACH_COVER_LEAD } from './sectionCoverMotion';
+import { APPROACH_COVER_LEAD, COMPARISON_COVER_LEAD } from './sectionCoverMotion';
 
 export function useStagePlayback(track) {
   const controls = useRef(null);
@@ -83,24 +83,32 @@ export function useStagePlayback(track) {
       }
       const runway = target.node.previousElementSibling;
       const connectedCover = direction > 0 && target.node.hasAttribute('data-approach-cover');
+      const comparisonCover = direction > 0 && target.node.hasAttribute('data-comparison-cover');
       const literature = target.node.classList.contains('literature-chapter');
+      const supportDeparture = direction > 0 && target.node.matches('.research-gap')
+        ? runway?.querySelector('.research-support-departure')
+        : null;
       const example = direction > 0 && runway?.matches('.example-chapter') ? runway : null;
       // Play straight through the last outgoing sheet and the first incoming
       // Literature Map sheet, without an ease-to-stop at the empty boundary.
       const firstStop = example ? pageY(example.querySelector('.example-exit-start'))
+        : supportDeparture ? pageY(supportDeparture) - window.innerHeight
         : literature ? to
+        : comparisonCover ? target.at - COMPARISON_COVER_LEAD * target.node.firstElementChild.offsetHeight
         : arrival ? target.at
         : connectedCover ? to - APPROACH_COVER_LEAD * window.innerHeight
         : direction > 0 && target.node.id !== 'chapter-02' && runway?.matches('.motion-runway')
         ? pageY(runway) : to;
-      const transitionTime = example ? 2720 : arrival ? 1480 : connectedCover ? 1320
+      const transitionTime = example ? 2720 : comparisonCover ? 2100 : supportDeparture ? 1850 : arrival ? 1480 : connectedCover ? 1320
         : target.node.id === 'chapter-03' ? 1800 : 1360;
       const separateTransition = firstStop > from + 24 && firstStop < to - 24;
       const destination = separateTransition ? firstStop : to;
       const distance = Math.abs(destination - from) / window.innerHeight;
       let duration = Math.min(720, 380 + distance * 125);
       if (!separateTransition) {
-        if (literature || target.node.hasAttribute('data-related-cover')) {
+        if (target.node.classList.contains('research-support')) {
+          duration = 1420;
+        } else if (literature || target.node.hasAttribute('data-related-cover')) {
           duration = Math.min(3700, 1000 + distance * 1150);
         } else if (arrival || target.node.hasAttribute('data-motion')) {
           duration = Math.min(1800, 940 + distance * 300);
