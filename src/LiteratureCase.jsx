@@ -6,7 +6,7 @@ import { publicAsset } from './publicAsset';
 import { viewportProgress } from './scrollProgress';
 
 const articles = [
-  { name: 'Sensecape', file: 'literature/sensecape-paper', tint: 0, hook: <>From chat to<br />spatial knowledge</>, intro: 'Sensecape turns LLM conversation output into movable information objects and supports organization across levels.' },
+  { name: 'Organize', file: 'literature/sensecape-paper', tint: 0, hook: <>From chat to<br />spatial knowledge</>, intro: 'Sensecape turns LLM conversation output into movable information objects and supports organization across levels.' },
   { name: 'Provenance', file: 'literature/node-flow-paper', tint: 2, hook: <>Trace the work<br />behind the output</> },
   { name: 'Interactive Debugging', file: 'literature/ai-chains-paper', tint: 1, hook: <>Edit the middle.<br />Test the effect.</> },
   { name: 'Workflow Graph', file: 'papers/trust', tint: 3, hook: <>From trace to<br />editable steps</> },
