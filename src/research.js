@@ -4,11 +4,10 @@ import { openingScreens, presetStop } from './presets';
 export const edition = en;
 
 export const messages = {
-  eyebrow: 'Design research', contents: 'Chapters', navigation: 'Chapter navigation',
+  contents: 'Chapters', navigation: 'Chapter navigation',
   previous: 'Previous chapter', next: 'Next chapter', start: 'Start reading',
   references: 'References', back: 'Back to the opening', skip: 'Skip to the research overview',
   groups: { 2: 'Background and scope', 6: 'Changing conditions and verification', 10: 'Related work', 15: 'Comparison and research gaps', 20: 'Research questions and design', 25: 'Evaluation and contributions' },
-  mastTitle: ['Visualizing Context', 'and Correcting', 'Deviations in Long', 'AI Conversations'],
 };
 
 export const count = edition.chapters.length;

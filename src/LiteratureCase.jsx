@@ -1,16 +1,18 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { ArrowRight, CircleHelp, Layers3, Search, Sparkles, Target } from 'lucide-react';
 import { Citation } from './Citation';
+import { papers, paperTints } from './papers';
 import { publicAsset } from './publicAsset';
 import { viewportProgress } from './scrollProgress';
 
 const articles = [
-  { name: 'Sensecape', file: 'literature/sensecape-paper', size: [638, 747], hook: <>From chat to<br />spatial knowledge</>, intro: 'Sensecape turns LLM conversation output into movable information objects and supports organization across levels.' },
-  { name: 'Provenance', file: 'literature/node-flow-paper', size: [605, 744], hook: <>Trace the work<br />behind the output</> },
-  { name: 'Interactive Debugging', file: 'literature/ai-chains-paper', size: [737, 744], hook: <>Edit the middle.<br />Test the effect.</> },
-  { name: 'Workflow Graph', file: 'papers/trust', size: [503, 748], hook: <>From trace to<br />editable steps</> },
+  { name: 'Sensecape', file: 'literature/sensecape-paper', tint: 0, hook: <>From chat to<br />spatial knowledge</>, intro: 'Sensecape turns LLM conversation output into movable information objects and supports organization across levels.' },
+  { name: 'Provenance', file: 'literature/node-flow-paper', tint: 2, hook: <>Trace the work<br />behind the output</> },
+  { name: 'Interactive Debugging', file: 'literature/ai-chains-paper', tint: 1, hook: <>Edit the middle.<br />Test the effect.</> },
+  { name: 'Workflow Graph', file: 'papers/trust', tint: 3, hook: <>From trace to<br />editable steps</> },
 ];
 
+const paperAspect = 1.32;
 const stripCount = 24;
 const stripPositions = Array.from({ length: stripCount }, (_, i) => ({
   '--strip-index': i,
@@ -21,7 +23,13 @@ const wallTiles = [
   [-1, -1, 'papers/identity'], [0, -1, 'papers/trust'], [1, -1, 'papers/reflection'],
   [-1, 0, 'papers/decisions'], [1, 0, 'literature/node-flow-paper'],
   [-1, 1, 'papers/convergence'], [0, 1, 'literature/ai-chains-paper'], [1, 1, 'papers/team'],
-];
+].map(([column, row, file]) => {
+  const article = articles.find(entry => entry.file === file);
+  const tint = article?.tint ?? papers.findIndex(([slug]) => file === 'papers/' + slug);
+  return { column, row, file, tint };
+});
+
+const darkPaper = tint => tint === 1 || tint === 4;
 
 function asset(file) {
   return publicAsset('literature/' + file + '.png');
@@ -39,11 +47,10 @@ function Rise({ children, className = '' }) {
 }
 
 function ReelSheet({ article, current }) {
-  const [width, height] = article.size;
   const source = publicAsset(article.file + '.png');
-  return <span className="case-sheet" data-current={current ? '' : undefined}
-    style={{ '--strip-count': stripCount, '--paper-image': 'url("' + source + '")' }}>
-    <img className="case-page" src={source} width={width} height={height} alt="" decoding="async" />
+  return <span className="case-sheet" data-current={current ? '' : undefined} data-dark={darkPaper(article.tint) ? '' : undefined}
+    style={{ '--strip-count': stripCount, '--case-paper-tint': paperTints[article.tint], '--paper-image': 'url("' + source + '")' }}>
+    <span className="case-page"><img src={source} alt="" decoding="async" /></span>
     <span className="case-strips">
       {stripPositions.map((style, index) => <span className="case-strip" key={index} style={style} />)}
     </span>
@@ -64,6 +71,7 @@ function CaseArt({ index, titleId }) {
     const body = scene.nextElementSibling;
     const masks = [...body.querySelectorAll('[data-case-reveal]')];
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
+    const shortLandscape = matchMedia('(max-height: 450px) and (orientation: landscape)');
     let frame = 0;
 
     function update() {
@@ -89,11 +97,11 @@ function CaseArt({ index, titleId }) {
       }
       const { width, height: artHeight } = canvas.getBoundingClientRect();
       const reelHeight = artHeight - wallBleed;
-      const faceWidth = Math.min(width * .76, reelHeight * (index === 3 ? .81 : .66), 430);
-      const faceHeight = faceWidth * 1.18;
+      const faceWidth = Math.min(width * .56, viewport * (shortLandscape.matches ? .37 : .42), 430);
+      const faceHeight = faceWidth * paperAspect;
       const radius = faceHeight * .94;
       const gridWidth = Math.min(width * .72, (reelHeight + bleed) * .66, 500);
-      const gridHeight = gridWidth * articles[0].size[1] / articles[0].size[0];
+      const gridHeight = gridWidth * paperAspect;
       const panX = Math.min(width * .095, gridWidth * .18) * wall;
       const panY = -gridHeight * .055 * wall;
 
@@ -103,7 +111,7 @@ function CaseArt({ index, titleId }) {
       canvas.style.setProperty('--case-focus', focus);
 
       tiles.forEach((tile, slot) => {
-        const [column, row] = wallTiles[slot];
+        const { column, row } = wallTiles[slot];
         const spread = 1 + focus * .58;
         tile.style.width = gridWidth + 'px';
         tile.style.height = gridHeight + 'px';
@@ -122,12 +130,8 @@ function CaseArt({ index, titleId }) {
         const y = Math.sin(theta) * radius * roll + (featured ? panY : 0);
         const z = (Math.cos(theta) - 1) * radius * roll;
         const grid = featured ? wall : 0;
-        const [imageWidth, imageHeight] = articles[slot].size;
-        const aspect = imageWidth / imageHeight;
-        const availableWidth = faceWidth + (gridWidth - faceWidth) * grid;
-        const availableHeight = faceHeight + (gridHeight - faceHeight) * grid;
-        const sheetWidth = Math.min(availableWidth, availableHeight * aspect);
-        const sheetHeight = sheetWidth / aspect;
+        const sheetWidth = faceWidth + (gridWidth - faceWidth) * grid;
+        const sheetHeight = sheetWidth * paperAspect;
         const bendAngle = curl * sheetHeight / radius;
         const bendRadius = curl > 0 ? radius / curl : 0;
         const visibility = featured ? 1
@@ -174,12 +178,13 @@ function CaseArt({ index, titleId }) {
   return <div className="case-runway" ref={sceneRef} data-first={index === 0 ? '' : undefined}>
     <div className="case-pin" data-play-surface data-art-covered>
       <header className="case-mask">
-        <h2 className="case-rise case-title" id={titleId} tabIndex={-1}>
+        <h2 className="case-rise case-title" id={titleId} tabIndex={-1} data-title-reveal>
           <span>0{index + 1} - </span>{name}
         </h2>
       </header>
       <div className="case-art" ref={canvasRef} aria-hidden="true">
-        {index === 0 && wallTiles.map(([, , file]) => <span className="case-tile" key={file}>
+        {index === 0 && wallTiles.map(({ file, tint }) => <span className="case-tile" key={file}
+          data-dark={darkPaper(tint) ? '' : undefined} style={{ '--case-paper-tint': paperTints[tint] }}>
           <img src={publicAsset(file + '.png')} alt="" decoding="async" />
         </span>)}
         {articles.map((article, slot) => <ReelSheet key={article.file} article={article} current={index === slot} />)}

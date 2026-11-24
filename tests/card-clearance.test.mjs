@@ -6,7 +6,7 @@ import { cardPose, COUNT, focusWheelPose } from '../src/choreography.js';
 import { keepCardsApart } from '../src/cardClearance.js';
 import { galleryPose, presetStop } from '../src/presets.js';
 import {
-  blendSectionCover, comparisonRingPoses, departGapPapers, questionsCoverPoses,
+  blendSectionCover, comparisonRingPoses, departGapPapers, nextStepsCoverPoses, questionsCoverPoses,
   researchGapPaperPoses, relatedTitleReveal, sectionCoverPoses,
 } from '../src/sectionCoverMotion.js';
 
@@ -146,6 +146,27 @@ test('the related research ribbons assemble and clear one sheet per beat', () =>
   }
   assert.equal(lastCount, 0);
   assert.equal(relatedTitleReveal(.54), 1);
+});
+
+test('the next steps ribbons retain their sheet sizes through entry and departure', () => {
+  for (const [width, height] of [[320, 386], [390, 574], [844, 265]]) {
+    const posesAt = progress => nextStepsCoverPoses(progress, width, height, true);
+    const settled = posesAt(.5);
+    const sheetCount = settled.filter(pose => pose[6] > 0).length;
+    assert.ok(sheetCount > 0);
+    assert.equal(nextStepsCoverPoses(0, width, height, false).filter(pose => pose[6] > 0).length, sheetCount);
+    assert.ok(posesAt(0).every(pose => pose[6] === 0));
+    assert.ok(posesAt(1).every(pose => pose[6] === 0));
+    assert.ok(posesAt(.20).filter(pose => pose[6] > 0).length < sheetCount);
+    assert.ok(posesAt(.90).filter(pose => pose[6] > 0).length < sheetCount);
+    for (let i = 1; i < 40; i++) {
+      const poses = posesAt(i / 40);
+      poses.forEach((pose, index) => {
+        if (pose[6]) assert.deepEqual([pose[6], pose[9]], [settled[index][6], settled[index][9]]);
+      });
+      apart(poses, width, height);
+    }
+  }
 });
 
 test('the comparison cover builds one upright ring and preserves it as the reading plate rises', () => {

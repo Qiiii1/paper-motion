@@ -32,7 +32,7 @@ export function ResearchGap({ scene }) {
           </linearGradient>
         </defs>
 
-        <g className="research-gap-enter" style={{ '--gap-start': .14 }}>
+        <g className="research-gap-enter" data-title-reveal style={{ '--gap-start': .14 }}>
           <text x="30" y="58" className="research-gap-heading">Research Gap</text>
         </g>
         <g className="research-gap-enter" style={{ '--gap-start': .26 }}>

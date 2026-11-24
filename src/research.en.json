@@ -1,5 +1,11 @@
 {
-  "title": "Visualizing Context and Correcting Deviations in Long AI Conversations",
+  "title": "Visualizing Context and Correcting Errors in Long AI Conversations",
+  "cover": {
+    "headline": ["Visualizing Context", "and Correcting Errors", "in Long AI", "Conversations"],
+    "question": ["How can users know what to change", "when goals or conditions shift?"],
+    "credit": "Report by Qimeng Mei and Qi Li",
+    "date": "2026-11-24"
+  },
   "chapters": [
     {
       "title": "Research title",
@@ -18,12 +24,13 @@
       "title": "Research Approach",
       "layout": "approach",
       "steps": [
-        "Real-world problem",
-        "Related research",
-        "Comparison & critique",
-        "Research gap",
-        "Research questions",
-        "Research methods"
+        { "label": "Research Background", "target": "part-01" },
+        { "label": "Related research", "target": "part-02" },
+        { "label": "Research Support & Limits", "target": "research-support" },
+        { "label": "Research gap", "target": "research-gap" },
+        { "label": "Research questions", "target": "part-05" },
+        { "label": "Research Design", "target": "part-06" },
+        { "label": "Next Steps", "target": "part-07" }
       ]
     },
     {
@@ -793,81 +800,97 @@
       {
         "kind": "ref",
         "citation": "[1] Wang, Lei; Ma, Chen; Feng, Xueyang; Zhang, Zeyu; Yang, Hao; Zhang, Jingsen; Chen, Zhiyuan; Tang, Jiakai; Chen, Xu; Lin, Yankai; Zhao, Wayne Xin; Wei, Zhewei; Wen, Jirong. A survey on large language model based autonomous agents[J]. Frontiers of Computer Science, 2024, 18(6): 186345. DOI: 10.1007/s11704-024-40231-1.",
+        "shortCitation": "Wang Lei, Ma Chen, Feng Xueyang, et al. A survey on large language model based autonomous agents[J]. Frontiers of Computer Science, 2024, 18(6): 186345. DOI: 10.1007/s11704-024-40231-1.",
         "url": "https://doi.org/10.1007/s11704-024-40231-1"
       },
       {
         "kind": "ref",
         "citation": "[2] Liu, Nelson F.; Lin, Kevin; Hewitt, John; Paranjape, Ashwin; Bevilacqua, Michele; Petroni, Fabio; Liang, Percy. Lost in the Middle: How Language Models Use Long Contexts[J]. Transactions of the Association for Computational Linguistics, 2024, 12: 157-173. DOI: 10.1162/tacl_a_00638.",
+        "shortCitation": "Liu N F, Lin K, Hewitt J, et al. Lost in the Middle: How Language Models Use Long Contexts[J]. Transactions of the Association for Computational Linguistics, 2024, 12: 157–173. DOI: 10.1162/tacl_a_00638.",
         "url": "https://doi.org/10.1162/tacl_a_00638"
       },
       {
         "kind": "ref",
         "citation": "[3] Yu, Kexin; Xiao, Yi; Li, Mengjie; Yu, Sisi; Yang, Yulu; Guo, Xinyu; Zhang, Wei; Yuan, Xiang. Design for AI-Integrated Design Team Collaboration: A Strategy and Exploration Using Node Flow in Establishing a Reusable Representation of Knowledge in the Collaborative Process[C]//Gray, C.; Ciliotta Chehade, E.; Hekkert, P.; Forlano, L.; Ciuccarelli, P.; Lloyd, P. (eds.). DRS2024: Boston. Boston, USA, 23–28 June 2024. Design Research Society, 2024. DOI: 10.21606/drs.2024.985.",
+        "shortCitation": "Yu Kexin, Xiao Yi, Li Mengjie, et al. Design for AI-integrated design team collaboration: A strategy and exploration using node flow in establishing a reusable representation of knowledge in the collaborative process[C]//DRS2024: Boston. Design Research Society, 2024. DOI: 10.21606/drs.2024.985.",
         "url": "https://doi.org/10.21606/drs.2024.985"
       },
       {
         "kind": "ref",
         "citation": "[4] Zhang, Shunan; Xiao, YI. Designing for Node-Based AI Tools: An Analysis and Synthesis of Design Principles[C]//Simeone, L.; Gray, C. M.; Verhoeven, A.; de Götzen, A.; Bakırlıoğlu, Y.; Zohar, H.; Stead, M.; Buwert, P. (eds.). DRS2026: Edinburgh. Edinburgh, United Kingdom, 8–12 June 2026. Design Research Society, 2026. DOI: 10.21606/drs.2026.1148.",
+        "shortCitation": "Zhang Shunan, Xiao Yi. Designing for node-based AI tools: An analysis and synthesis of design principles[C]//DRS2026: Edinburgh. Design Research Society, 2026. DOI: 10.21606/drs.2026.1148.",
         "url": "https://doi.org/10.21606/drs.2026.1148"
       },
       {
         "kind": "ref",
         "citation": "[5] Suh, Sangho; Min, Bryan; Palani, Srishti; Xia, Haijun. Sensecape: Enabling Multilevel Exploration and Sensemaking with Large Language Models[C]//Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology. San Francisco, CA, USA, 29 October–1 November 2023. New York: Association for Computing Machinery, 2023: 1-18. DOI: 10.1145/3586183.3606756.",
+        "shortCitation": "Suh S, Min B, Palani S, et al. Sensecape: Enabling multilevel exploration and sensemaking with large language models[C]//Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology. New York: ACM, 2023: 1–18. DOI: 10.1145/3586183.3606756.",
         "url": "https://doi.org/10.1145/3586183.3606756"
       },
       {
         "kind": "ref",
         "citation": "[6] Wu, Tongshuang; Terry, Michael; Cai, Carrie Jun. AI Chains: Transparent and Controllable Human-AI Interaction by Chaining Large Language Model Prompts[C]//CHI Conference on Human Factors in Computing Systems. New Orleans, LA, USA, 29 April–5 May 2022. New York: Association for Computing Machinery, 2022: 1-22. DOI: 10.1145/3491102.3517582.",
+        "shortCitation": "Wu T, Terry M, Cai C J. AI Chains: Transparent and controllable human-AI interaction by chaining large language model prompts[C]//Proceedings of the 2022 CHI Conference on Human Factors in Computing Systems. New York: ACM, 2022: 1–22. DOI: 10.1145/3491102.3517582.",
         "url": "https://doi.org/10.1145/3491102.3517582"
       },
       {
         "kind": "ref",
         "citation": "[7] Epperson, Will; Bansal, Gagan; Dibia, Victor C; Fourney, Adam; Gerrits, Jack; Zhu, Erkang (Eric); Amershi, Saleema. Interactive Debugging and Steering of Multi-Agent AI Systems[C]//Proceedings of the 2025 CHI Conference on Human Factors in Computing Systems. Yokohama, Japan, 26 April–1 May 2025. New York: Association for Computing Machinery, 2025: 1-15. DOI: 10.1145/3706598.3713581.",
+        "shortCitation": "Epperson W, Bansal G, Dibia V C, et al. Interactive debugging and steering of multi-agent AI systems[C]//Proceedings of the 2025 CHI Conference on Human Factors in Computing Systems. New York: ACM, 2025: 1–15. DOI: 10.1145/3706598.3713581.",
         "url": "https://doi.org/10.1145/3706598.3713581"
       },
       {
         "kind": "ref",
         "citation": "[8] Wu, Zekun; Wang, Xinru; Pang, Rock Yuren; Wang, Chenglong; Feit, Anna Maria. From Review to Reuse: How Post-Task Workflow Can Support Human-AI Agent Interaction[EB/OL]. arXiv:2609.13136v2, 2026. Version 2 updated November 1, 2026. Accessed November 18, 2026. DOI: 10.48550/arXiv.2609.13136.",
+        "shortCitation": "Wu Zekun, Wang Xinru, Pang Rock Yuren, et al. From review to reuse: How post-task workflow can support human-AI agent interaction[PP/OL]. v2. arXiv (2026-11-01)[2026-11-18]. DOI: 10.48550/arXiv.2609.13136.",
         "url": "https://arxiv.org/abs/2609.13136v2"
       },
       {
         "kind": "ref",
         "citation": "[9] Ragan, Eric D.; Endert, Alex; Sanyal, Jibonananda; Chen, Jian. Characterizing Provenance in Visualization and Data Analysis: An Organizational Framework of Provenance Types and Purposes[J]. IEEE Transactions on Visualization and Computer Graphics, 2016, 22(1): 31-40. DOI: 10.1109/tvcg.2015.2467551.",
+        "shortCitation": "Ragan E D, Endert A, Sanyal J, et al. Characterizing provenance in visualization and data analysis: An organizational framework of provenance types and purposes[J]. IEEE Transactions on Visualization and Computer Graphics, 2016, 22(1): 31–40. DOI: 10.1109/TVCG.2015.2467551.",
         "url": "https://doi.org/10.1109/tvcg.2015.2467551"
       },
       {
         "kind": "ref",
         "citation": "[10] Xu, Kai; Ottley, Alvitta; Walchshofer, Conny; Streit, Marc; Chang, Remco; Wenskovitch, John. Survey on the Analysis of User Interactions and Visualization Provenance[J]. Computer Graphics Forum, 2020, 39(3): 757-783. DOI: 10.1111/cgf.14035.",
+        "shortCitation": "Xu K, Ottley A, Walchshofer C, et al. Survey on the analysis of user interactions and visualization provenance[J]. Computer Graphics Forum, 2020, 39(3): 757–783. DOI: 10.1111/cgf.14035.",
         "url": "https://doi.org/10.1111/cgf.14035"
       },
       {
         "kind": "ref",
         "citation": "[11] Dorst, Kees; Cross, Nigel. Creativity in the design process: co-evolution of problem–solution[J]. Design Studies, 2001, 22(5): 425-437. DOI: 10.1016/s0142-694x(01)00009-6.",
+        "shortCitation": "Dorst K, Cross N. Creativity in the design process: Co-evolution of problem–solution[J]. Design Studies, 2001, 22(5): 425–437. DOI: 10.1016/S0142-694X(01)00009-6.",
         "url": "https://doi.org/10.1016/s0142-694x(01)00009-6"
       },
       {
         "kind": "ref",
         "citation": "[12] Fang, Cong; Zhu, Yujie; Fang, Le; Long, Yonghao; Lin, Huan; Cong, Yangfan; Wang, Stephen Jia. Generative AI-enhanced human-AI collaborative conceptual design: A systematic literature review[J]. Design Studies, 2025, 97: 101300. DOI: 10.1016/j.destud.2025.101300.",
+        "shortCitation": "Fang C, Zhu Y, Fang L, et al. Generative AI-enhanced human-AI collaborative conceptual design: A systematic literature review[J]. Design Studies, 2025, 97: 101300. DOI: 10.1016/j.destud.2025.101300.",
         "url": "https://doi.org/10.1016/j.destud.2025.101300"
       },
       {
         "kind": "ref",
         "citation": "[13] Mohseni, Sina; Zarei, Niloofar; Ragan, Eric D.. A Multidisciplinary Survey and Framework for Design and Evaluation of Explainable AI Systems[J]. ACM Transactions on Interactive Intelligent Systems, 2021, 11(3-4): 1-45. DOI: 10.1145/3387166.",
+        "shortCitation": "Mohseni S, Zarei N, Ragan E D. A multidisciplinary survey and framework for design and evaluation of explainable AI systems[J]. ACM Transactions on Interactive Intelligent Systems, 2021, 11(3–4): 1–45. DOI: 10.1145/3387166.",
         "url": "https://doi.org/10.1145/3387166"
       },
       {
         "kind": "ref",
         "citation": "[14] Mehrotra, Siddharth; Degachi, Chadha; Vereschak, Oleksandra; Jonker, Catholijn M.; Tielman, Myrthe L.. A Systematic Review on Fostering Appropriate Trust in Human-AI Interaction: Trends, Opportunities and Challenges[J]. ACM Journal on Responsible Computing, 2024, 1(4): 26: 1–45. DOI: 10.1145/3696449.",
+        "shortCitation": "Mehrotra S, Degachi C, Vereschak O, et al. A systematic review on fostering appropriate trust in human-AI interaction: Trends, opportunities and challenges[J]. ACM Journal on Responsible Computing, 2024, 1(4): 26:1–45. DOI: 10.1145/3696449.",
         "url": "https://doi.org/10.1145/3696449"
       },
       {
         "kind": "ref",
         "citation": "[15] Buçinca, Zana; Malaya, Maja Barbara; Gajos, Krzysztof Z.. To Trust or to Think: Cognitive Forcing Functions Can Reduce Overreliance on AI in AI-assisted Decision-making[J]. Proceedings of the ACM on Human-Computer Interaction, 2021, 5(CSCW1): 188: 1–21. DOI: 10.1145/3449287.",
+        "shortCitation": "Buçinca Z, Malaya M B, Gajos K Z. To trust or to think: Cognitive forcing functions can reduce overreliance on AI in AI-assisted decision-making[J]. Proceedings of the ACM on Human-Computer Interaction, 2021, 5(CSCW1): 188:1–21. DOI: 10.1145/3449287.",
         "url": "https://doi.org/10.1145/3449287"
       },
       {
         "kind": "ref",
         "citation": "[16] Xu, Kai; Mao, YiWei; Guan, XinYi; Feng, ZiLong. Web-Bench: A LLM Code Benchmark Based on Web Standards and Frameworks[EB/OL]. arXiv:2505.07473, 2025. DOI: 10.48550/arXiv.2505.07473.",
+        "shortCitation": "Xu K, Mao Y, Guan X, et al. Web-Bench: A LLM code benchmark based on web standards and frameworks[PP/OL]. arXiv (2025-05-12)[2026-11-24]. DOI: 10.48550/arXiv.2505.07473.",
         "url": "https://arxiv.org/abs/2505.07473",
         "extra": "Case materials: Shopping Mart e-commerce project task file."
       }

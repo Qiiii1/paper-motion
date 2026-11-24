@@ -116,7 +116,10 @@ export function PaperStage({ track, lang }) {
         const departure = motion ? Math.max(0, y - focus.top - focus.span) : 0;
         const hold = Math.min(departure, focus.overhang);
         const exit = Math.min(1, (departure - hold) / (h * .45));
-        const travel = hold + exit * h * .45;
+        // When the pin is taller than the viewport, let its lower copy come
+        // into view during the lens sequence and hold that offset on exit.
+        const readingShift = focus.overhang * ease(.06, .76, focus.reading);
+        const travel = hold + exit * h * .45 - readingShift;
         if (exit !== focus.exit) {
           focus.node.style.setProperty('--focus-exit', exit);
           focus.node.toggleAttribute('data-focus-exiting', exit > 0);
@@ -218,6 +221,8 @@ export function PaperStage({ track, lang }) {
     const observer = new ResizeObserver(resize);
     observer.observe(root);
     observer.observe(host);
+    const focusPin = root.querySelector('.focus-pin');
+    if (focusPin) observer.observe(focusPin);
     resize();
     loadPages().then(loaded => {
       if (stopped) return;

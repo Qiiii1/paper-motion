@@ -86,8 +86,23 @@
   display: block;
 }
 
-.case-tile { opacity: 0; background: #fff; overflow: hidden; }
-.case-tile img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.case-tile { opacity: 0; overflow: hidden; }
+.case-tile, .case-page, .case-strip { background: var(--case-paper-tint); isolation: isolate; }
+.case-tile img, .case-page img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left top;
+}
+.case-tile img, .case-page img, .case-strip::before {
+  filter: grayscale(1);
+  mix-blend-mode: multiply;
+}
+.case-tile[data-dark] img, .case-sheet[data-dark] .case-page img, .case-sheet[data-dark] .case-strip::before {
+  filter: grayscale(1) invert(1);
+  mix-blend-mode: screen;
+}
 
 .case-sheet {
   --sheet-corner: calc(var(--case-focus) * 16px);
@@ -98,7 +113,6 @@
   display: none;
   width: 100%;
   height: 100%;
-  object-fit: contain;
   opacity: var(--sheet-visible, 0);
 }
 
@@ -131,7 +145,7 @@
 .case-strip::before {
   top: calc(-1 * var(--strip-height) * var(--strip-index));
   height: calc(var(--strip-height) * var(--strip-count) + .6px);
-  background: #fff var(--paper-image) center / contain no-repeat;
+  background: var(--paper-image) left top / cover no-repeat;
 }
 
 .case-strip::after {

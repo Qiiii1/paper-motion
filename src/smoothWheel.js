@@ -1,5 +1,5 @@
-const wheelGain = .56;
-const wheelResponse = 26;
+const wheelGain = .68;
+const wheelResponse = 29;
 
 export function createSmoothWheel() {
   let frame = 0;
@@ -40,7 +40,7 @@ export function createSmoothWheel() {
     const pageMode = mode === WheelEvent.DOM_DELTA_PAGE;
     const unit = pageMode ? viewport.clientHeight : mode === WheelEvent.DOM_DELTA_LINE ? 16 : 1;
     const delta = event.deltaY * unit * (pageMode ? 1 : wheelGain);
-    const maxPending = pageMode ? viewport.clientHeight : Math.min(105, viewport.clientHeight * .135);
+    const maxPending = pageMode ? viewport.clientHeight : Math.min(125, viewport.clientHeight * .16);
     event.preventDefault();
     if (!frame || window.scrollY !== expected) {
       cancel();

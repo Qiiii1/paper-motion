@@ -65,6 +65,7 @@ export function ResearchStack({ id, phase, lang }) {
   // Hold the last reading step, then move the whole plate below the viewport
   // during the unpinned tail. The grid begins reforming at the next runway.
   const lift = Math.max(0, Math.min(window.innerHeight, top));
+  const titleProgress = ease(.38 * window.innerHeight, 0, top);
   const exit = ease(.70 * window.innerHeight, 0, bottom);
 
   return <section id={id} className="research-chapter stack-chapter" ref={root}
@@ -72,9 +73,11 @@ export function ResearchStack({ id, phase, lang }) {
     <div className="stack-pin">
       <div className="stack-plate" style={{'--stack-lift': lift + 'px', '--stack-exit': exit,
         visibility: exit === 1 ? 'hidden' : undefined, pointerEvents: exit > .5 ? 'none' : undefined}}>
-        <h2 id={id + '-title'} tabIndex={-1} className="stack-title">
-          {text.title.map(line => <span key={line}>{line}</span>)}
-        </h2>
+        <div className="stack-title-mask" style={{ '--title-progress': titleProgress }}>
+          <h2 id={id + '-title'} tabIndex={-1} className="stack-title" data-title-reveal>
+            {text.title.map(line => <span key={line}>{line}</span>)}
+          </h2>
+        </div>
         <div className="stack-body">
           <div className="stack-diagram" data-stage={stage} aria-hidden={stage === 5}
             style={{opacity: 1 - Math.min(1, infoT * 1.5)}}>

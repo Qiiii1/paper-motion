@@ -4,19 +4,19 @@ import { publicAsset } from './publicAsset';
 import { viewportProgress } from './scrollProgress';
 import './researchStudy.css';
 
-function StudyReveal({ children, className = '' }) {
+export function StudyReveal({ children, className = '' }) {
   return <div className={'study-mask ' + className} data-study-reveal>
     <div className="study-rise">{children}</div>
   </div>;
 }
 
-function StudyChapter({ scene, id, title, children }) {
+export function StudyChapter({ scene, id, title, children, backdrop }) {
   const plate = useRef(null);
 
   useLayoutEffect(() => {
     const node = plate.current;
     const groups = [...node.querySelectorAll('[data-study-reveal]')];
-    const previous = groups.map(() => 1);
+    const previous = [];
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     let frame = 0;
 
@@ -55,6 +55,7 @@ function StudyChapter({ scene, id, title, children }) {
 
   return <section ref={scene} id={id} className="study-chapter" data-chapter data-art-covered aria-labelledby={id + '-title'}>
     <div ref={plate} className="study-plate">
+      {backdrop}
       <div className="study-copy">
         <StudyReveal className="study-page-title"><h2 id={id + '-title'} tabIndex={-1}>{title}</h2></StudyReveal>
         {children}

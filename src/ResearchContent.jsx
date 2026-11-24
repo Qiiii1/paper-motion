@@ -4,13 +4,16 @@ import { Citation } from './Citation';
 import { ResearchStack } from './ResearchStack';
 import { ResearchApproach } from './ResearchApproach';
 import { ResearchScope } from './ResearchScope';
-import { ResearchExample } from './ResearchExample';
 import { ResearchLiterature } from './ResearchLiterature';
+import { SearchKeywordMap } from './SearchKeywordMap';
+import { PublicationTrends } from './PublicationTrends';
 import { LiteratureCase } from './LiteratureCase';
 import { ResearchPartCover } from './ResearchPartCover';
 import { ResearchComparison } from './ResearchComparison';
+import { ResearchClosing } from './ResearchClosing';
 
 const lastStoryChapter = 14;
+const isCaseStudy = chapter => chapter >= 6 && chapter <= 9;
 
 function Copy({ text }) {
   return text.split(/(\[\d+(?:[–,-]\d+)*\])/g).map((part, index) => index % 2 === 1
@@ -100,17 +103,20 @@ function ResearchFocus({ id, phase, lang }) {
 }
 
 export function OpeningCover({ edition, ui }) {
-  const { chapters } = edition;
+  const { cover, title } = edition;
   return <header className="research-cover" id="opening" data-chapter data-motion={0} data-play-surface>
     <a href={'#' + chapterId(2)} className="skip-link">{ui.skip}</a>
     <div className="cover-type">
-      <p className="cover-label">{ui.eyebrow}</p>
-      <h1 aria-label={edition.title}>
-        {ui.mastTitle.map((line, index) => <span key={line} className={index > 1 ? 'cover-end' : undefined}>{line}</span>)}
+      <h1 aria-label={title}>
+        {cover.headline.map(line => <span key={line}>{line}</span>)}
       </h1>
-      <div className="cover-deck">
-        {chapters[0].blocks.map(block => <p key={block.kind}>{block.text}</p>)}
-      </div>
+      <p className="cover-question" aria-label={cover.question.join(' ')}>
+        {cover.question.map(line => <span key={line}>{line}</span>)}
+      </p>
+    </div>
+    <div className="cover-byline">
+      <p className="cover-credit">{cover.credit}</p>
+      <p className="cover-date">Date : <time dateTime={cover.date}>{cover.date.replaceAll('-', '.')}</time></p>
     </div>
   </header>;
 }
@@ -119,12 +125,16 @@ export function ResearchChapters({ edition, ui, lang }) {
   return <>
     {edition.chapters.slice(1, lastStoryChapter).map(({ title, blocks, steps, layout }, index) => {
       const chapter = index + 2;
-      if (chapter >= 7 && chapter <= 9) return null;
+      if (isCaseStudy(chapter)) return null;
       const id = chapterId(chapter);
       const phase = motion.get(chapter);
       return <Fragment key={id}>
         {chapter === 3 && <ResearchPartCover part={1} />}
-        {chapter === 10 && <ResearchPartCover part={2} />}
+        {chapter === 10 && <>
+          <ResearchPartCover part={2} />
+          <SearchKeywordMap />
+          <PublicationTrends />
+        </>}
         {phase !== undefined && <div className={'motion-runway runway-' + chapter}
           data-art-covered={chapter === 10 ? '' : undefined} data-play-surface aria-hidden="true" />}
         {steps
@@ -135,13 +145,6 @@ export function ResearchChapters({ edition, ui, lang }) {
           ? <ResearchFocus id={id} phase={phase} lang={lang} />
           : chapter === 5
           ? <ResearchScope id={id} phase={phase} lang={lang} title={title} blocks={blocks} />
-          : chapter === 6
-          ? <ResearchExample id={id} phase={phase}>
-            {edition.chapters.slice(5, 9).map(entry => <section key={entry.title}>
-              <h4>{entry.title}</h4>
-              {entry.blocks.map((block, i) => <Paragraph key={i} block={block} />)}
-            </section>)}
-          </ResearchExample>
           : chapter === 10
           ? <ResearchLiterature id={id} phase={phase} />
           : chapter >= 11 && chapter <= 14
@@ -175,6 +178,7 @@ export function ResearchChapters({ edition, ui, lang }) {
       </Fragment>;
     })}
     <ResearchComparison />
+    <ResearchClosing references={edition.references} />
   </>;
 }
 
@@ -186,16 +190,25 @@ export function ResearchNavigation({ edition, ui, lang, switchLanguage, playback
       <span aria-hidden="true">{ui.contents} <span>⌄</span></span>
       <select aria-label={ui.contents} value={active} onChange={event => jump(event.target.value)}>
         {edition.chapters.slice(0, lastStoryChapter).map(({ title }, i) =>
-          <option key={i} value={chapterId(i + 1)}>{number(i + 1)} {title}</option>)}
+          isCaseStudy(i + 1) ? null : <Fragment key={i}>
+            {i === 9 && <>
+              <option value="search-keyword-map">Search Keyword Map</option>
+              <option value="publication-trends">Publication Trends</option>
+            </>}
+            <option value={chapterId(i + 1)}>{number(i + 1)} {title}</option>
+          </Fragment>)}
         <option value="research-questions">Research Questions</option>
         <option value="part-06">06 Research Design</option>
         <option value="research-design">Research Design</option>
         <option value="research-process">Research Process</option>
+        <option value="part-07">07 Next Steps</option>
+        <option value="contributions">Expected Contributions &amp; Next Steps</option>
+        <option value="references">Reference</option>
       </select>
     </label>
     <div className="chapter-steps">
       {active !== 'opening' && <button data-playback aria-label={ui.previous} aria-disabled={playing} onClick={() => step(-1)}>←</button>}
-      {active !== 'research-process' && <button data-playback className="next-chapter" aria-disabled={playing} onClick={() => step(1)}>
+      {active !== 'references' && <button data-playback className="next-chapter" aria-disabled={playing} onClick={() => step(1)}>
         {active === 'opening' ? ui.start : ui.next} <span aria-hidden="true">→</span>
       </button>}
     </div>

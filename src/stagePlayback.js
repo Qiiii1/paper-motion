@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { pageY, reducedMotion } from './research';
 import { createSmoothWheel } from './smoothWheel';
-import { APPROACH_COVER_LEAD, COMPARISON_COVER_LEAD } from './sectionCoverMotion';
+import { APPROACH_COVER_LEAD, COMPARISON_COVER_LEAD, COVER_RIBBON_LEAD } from './sectionCoverMotion';
 
 export function useStagePlayback(track) {
   const controls = useRef(null);
@@ -17,13 +17,7 @@ export function useStagePlayback(track) {
     let stops, frame = 0, run = null, down = null, dragged = false;
 
     function measure() {
-      const next = [...root.querySelectorAll('[data-chapter]')].map(node => {
-        const layout = node.closest('.example-layout');
-        if (!layout) return { node, at: pageY(node) };
-        const scene = layout.parentElement;
-        const hold = pageY(layout) - pageY(scene);
-        return { node, at: Math.min(pageY(node) - hold, pageY(scene.querySelector('.example-exit-start'))) };
-      });
+      const next = [...root.querySelectorAll('[data-chapter]')].map(node => ({ node, at: pageY(node) }));
       if (run && next.some((stop, i) => Math.abs(stop.at - stops[i].at) > 1)) cancel();
       stops = next;
       sync();
@@ -86,16 +80,14 @@ export function useStagePlayback(track) {
       const comparisonCover = direction > 0 && target.node.hasAttribute('data-comparison-cover');
       const questionsCover = direction > 0 && target.node.hasAttribute('data-questions-cover');
       const designCover = direction > 0 && target.node.hasAttribute('data-design-cover');
+      const ribbonCover = direction > 0 && target.node.matches('[data-related-cover], [data-next-steps-cover]');
       const literature = target.node.classList.contains('literature-chapter');
       const supportDeparture = direction > 0 && target.node.matches('.research-gap')
         ? runway?.querySelector('.research-support-departure')
         : null;
       const gapDeparture = questionsCover ? runway?.querySelector('.research-gap-outro') : null;
       const questionsDeparture = designCover ? runway?.querySelector('.questions-outro') : null;
-      const example = direction > 0 && runway?.matches('.example-chapter') ? runway : null;
-      // Play straight through the last outgoing sheet and the first incoming
-      // Literature Map sheet, without an ease-to-stop at the empty boundary.
-      const firstStop = example ? pageY(example.querySelector('.example-exit-start'))
+      const firstStop = ribbonCover ? target.at - COVER_RIBBON_LEAD * window.innerHeight
         : supportDeparture ? pageY(supportDeparture) - window.innerHeight
         : gapDeparture ? pageY(gapDeparture) - runway.firstElementChild.offsetHeight
         : questionsDeparture ? pageY(questionsDeparture) - window.innerHeight
@@ -105,20 +97,20 @@ export function useStagePlayback(track) {
         : connectedCover ? to - APPROACH_COVER_LEAD * window.innerHeight
         : direction > 0 && target.node.id !== 'chapter-02' && runway?.matches('.motion-runway')
         ? pageY(runway) : to;
-      const transitionTime = example ? 2720 : questionsCover || designCover ? 2450 : comparisonCover ? 2100 : supportDeparture ? 1850 : arrival ? 1480 : connectedCover ? 1320
+      const transitionTime = questionsCover || designCover ? 2450 : comparisonCover || ribbonCover ? 2100 : supportDeparture ? 1850 : arrival ? 1480 : connectedCover ? 1320
         : target.node.id === 'chapter-03' ? 1800 : 1360;
       const separateTransition = firstStop > from + 24 && firstStop < to - 24;
       const destination = separateTransition ? firstStop : to;
       const distance = Math.abs(destination - from) / window.innerHeight;
       let duration = Math.min(720, 380 + distance * 125);
       if (!separateTransition) {
-        if (target.node.matches('.research-questions, #research-design')) {
+        if (target.node.matches('.research-questions, #research-design, #contributions')) {
           duration = 1520;
         } else if (target.node.matches('.research-support')) {
           duration = 1420;
         } else if (questionsCover || designCover) {
           duration = 2380;
-        } else if (literature || target.node.hasAttribute('data-related-cover')) {
+        } else if (literature || ribbonCover || target.node.matches('.keyword-chapter')) {
           duration = Math.min(3700, 1000 + distance * 1150);
         } else if (arrival || target.node.hasAttribute('data-motion')) {
           duration = Math.min(1800, 940 + distance * 300);
@@ -176,6 +168,12 @@ export function useStagePlayback(track) {
 
     function click(event) {
       if (event.defaultPrevented) return;
+      const link = event.target.closest('a[data-stage-link]');
+      if (link && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+        event.preventDefault();
+        direct(link.hash.slice(1));
+        return;
+      }
       const stageStep = event.target.closest('button[data-stage-step]');
       if (stageStep) {
         advance(Number(stageStep.dataset.stageStep));

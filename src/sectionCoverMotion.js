@@ -1,6 +1,7 @@
 import { cardPose, COUNT, ease, onRing } from './choreography.js';
 
 export const APPROACH_COVER_LEAD = 1.34;
+export const COVER_RIBBON_LEAD = .62;
 export const COMPARISON_COVER_LEAD = .60;
 export const COMPARISON_RING_SETTLE = .76;
 const hidden = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -188,6 +189,34 @@ export function questionsCoverPoses(progress, width, height) {
     sheet[5] += (fromRight ? .52 : -.44) * (1 - travel) + .13 * settle;
     sheet[7] += .14 * wave + .10 * settle;
     sheet[8] += .28 * wave;
+    return sheet;
+  });
+}
+
+export function nextStepsCoverPoses(progress, width, height, motion) {
+  const settled = sectionCoverPoses(7, .10, 0, width, height, height * .90);
+  if (!motion) return settled;
+  const camera = Math.max(width, height) * 1.65;
+  return settled.map((paper, index) => {
+    if (!paper[6]) return paper;
+    const rank = ribbonRank.get(index) / (relatedOrder.length - 1);
+    const arrival = ease(.20 * rank, .18 + .20 * rank, progress);
+    const departure = ease(.74 + .10 * (1 - rank), .89 + .10 * (1 - rank), progress);
+    if (arrival === 0 || departure === 1) return hidden;
+
+    const sheet = paper.slice();
+    const travel = 1 - arrival;
+    const arc = Math.sin(Math.PI * arrival);
+    const peel = Math.sin(Math.PI * departure);
+    const rest = ease(.30, .65, progress) * (.018 + rank * .022);
+    const scale = 1 - paper[2] / camera;
+    const beyondEdge = width * .5 * scale + Math.hypot(paper[6], paper[9]);
+    sheet[0] += (-beyondEdge - paper[0]) * travel + (beyondEdge - paper[0]) * departure + width * rest;
+    sheet[1] += height * (.35 * travel - .20 * arc - .25 * departure - .12 * peel);
+    sheet[3] -= .57 * travel + .43 * peel;
+    sheet[5] += .39 * travel - .19 * arc - .29 * departure + rest;
+    sheet[7] += .12 * (arc + peel);
+    sheet[8] += .20 * (arc + peel);
     return sheet;
   });
 }

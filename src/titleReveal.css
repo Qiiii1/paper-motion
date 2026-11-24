@@ -1,0 +1,52 @@
+/* Leave headroom above each fixed mask for the short upward rebound. */
+.part-cover-title > span,
+.approach-mask:first-child,
+.stack-title-mask,
+.focus-header > .focus-mask:first-child,
+.scope-header > .scope-mask:first-child,
+.keyword-title-mask,
+.literature-title-mask,
+.case-pin > .case-mask,
+.research-support-title > .research-support-copy-mask,
+.questions-heading > .questions-mask:first-child,
+.study-page-title {
+  margin-block-start: -8px;
+  padding-block-start: 8px;
+}
+.stack-title-mask { overflow: clip; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .stack-title-mask:not(:focus-within) > .stack-title {
+    opacity: var(--title-progress, 0);
+    transform: translateY(calc((1 - var(--title-progress, 0)) * 104%));
+  }
+  @supports (transform: translateY(calc(sin(1rad) * 1px))) {
+    .part-cover-title [data-title-reveal] { --title-progress: var(--part-line); }
+    .approach-rise[data-title-reveal] { --title-progress: var(--approach-t); }
+    .keyword-title-mask [data-title-reveal] { --title-progress: var(--keyword-heading); }
+    .literature-hero [data-title-reveal] { --title-progress: var(--title-visible); }
+    .case-title[data-title-reveal] { --title-progress: var(--case-reveal, 0); }
+    .research-support-copy-rise[data-title-reveal] { --title-progress: var(--support-reveal, 0); }
+    .questions-rise[data-title-reveal] { --title-progress: var(--questions-opacity); }
+    .study-page-title > .study-rise { --title-progress: var(--study-reveal, 1); }
+    .research-gap-enter[data-title-reveal] {
+      --title-progress: var(--gap-opacity);
+      --title-distance: 19px;
+    }
+
+    [data-title-reveal]:not(:focus, :focus-within),
+    .study-page-title:not(:focus-within) > .study-rise,
+    .stack-title-mask:not(:focus-within) > .stack-title[data-title-reveal] {
+      --title-up: clamp(0, calc(var(--title-progress, 0) / .82), 1);
+      --title-landed: calc(var(--title-up) * var(--title-up) * (3 - 2 * var(--title-up)));
+      --title-rest: clamp(0, calc((var(--title-progress, 0) - .82) / .18), 1);
+      transform: translateY(calc(
+        (1 - var(--title-landed)) * var(--title-distance, 108%)
+        - sin(calc(var(--title-rest) * 1turn)) * (1 - var(--title-rest)) * 9px
+      ));
+    }
+    .part-cover-title:focus > span > [data-title-reveal] { transform: none; }
+    .questions-mask:focus-within > .questions-rise,
+    .research-support-copy-mask:focus-within > [data-title-reveal] { transform: none; }
+  }
+}

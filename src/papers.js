@@ -6,3 +6,5 @@ export const papers = [
   ['team', 'Design for AI-integrated design team collaboration', '#afa1cf'],
   ['reflection', 'Leveraging LLMs for reflection', '#77b8ce'],
 ];
+
+export const paperTints = ['#ff7252', '#28334e', '#e9e1ce', '#bdd1a9', '#292640', '#77b9d0'];

@@ -9,7 +9,7 @@ export function questionsDeparture(section, height) {
 
 function Reveal({ children, intro }) {
   return <div className="questions-mask" data-questions-reveal={intro}>
-    <div className="questions-rise">{children}</div>
+    <div className="questions-rise" data-title-reveal={intro === 0 ? '' : undefined}>{children}</div>
   </div>;
 }
 

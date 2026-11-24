@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef } from 'react';
-import { Target } from 'lucide-react';
-import { papers } from './papers';
+import { Binoculars, Target } from 'lucide-react';
+import { papers, paperTints } from './papers';
 import { ease } from './choreography';
 import { LITERATURE_CARD_COUNT, literatureCardPose, literatureSlot, literatureTurn } from './literatureOrbit';
 import { viewportProgress } from './scrollProgress';
@@ -13,14 +13,13 @@ const strands = [
   ['Intervene', 'Intermediate edits, feedback, debugging, and control.', 'Helps users implement modifications.'],
 ];
 
-const orbitColors = ['#ff7252', '#28334e', '#e9e1ce', '#bdd1a9', '#292640', '#77b9d0'];
 const sheets = Array.from({ length: LITERATURE_CARD_COUNT }, (_, index) => {
   const texture = literatureSlot(index) % 6;
   return {
     slug: papers[texture][0],
     dark: texture === 1 || texture === 4,
     inner: index % 2 === 0,
-    color: orbitColors[texture],
+    color: paperTints[texture],
   };
 });
 
@@ -46,12 +45,10 @@ export function ResearchLiterature({ id, phase }) {
   const orbit = useRef(null);
   useLayoutEffect(() => {
     const scene = root.current;
-    const runway = scene.previousElementSibling;
-    const coverPin = runway.previousElementSibling.querySelector('.part-cover-pin');
     const layout = scene.firstElementChild;
     const cards = [...orbit.current.children];
-    const synthesis = layout.querySelector('.literature-synthesis');
-    const copy = [...scene.querySelectorAll('[data-literature-reveal]')].filter(node => !synthesis.contains(node));
+    const summaries = [...layout.querySelectorAll('.literature-summary')];
+    const copy = [...scene.querySelectorAll('[data-literature-reveal]')].filter(node => !node.closest('.literature-summary'));
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     let frame = 0;
     let previous;
@@ -65,15 +62,10 @@ export function ResearchLiterature({ id, phase }) {
       frame = 0;
       const height = window.innerHeight;
       const { top, bottom, height: sceneHeight } = scene.getBoundingClientRect();
-      // The last pinned cover frame and the first orbit frame share a scroll position.
-      const handoff = runway.getBoundingClientRect().top - coverPin.getBoundingClientRect().height;
-      const arrival = Math.max(0, -handoff);
-      const from = top - handoff;
-      const next = motion.matches ? 1 : viewportProgress(top, height, from / height, .01);
-      if (next === previous && (handoff > 0 || bottom < 0)) return;
-      // Compensate for the page moving until the stationary gate is in its
-      // normal reading position. The ring then leaves in the document flow.
-      const lift = next > 0 && !motion.matches ? Math.min(0, -top) : 0;
+      // Start as the map comes into view below the preceding chapter.
+      const arrival = Math.max(0, height * .94 - top);
+      const next = motion.matches ? 1 : viewportProgress(top, height, .94, .01);
+      if (next === previous && (arrival === 0 || bottom < 0)) return;
       const layoutHeight = layout.offsetHeight;
       const exitLength = sceneHeight - layoutHeight;
       const hold = !motion.matches && exitLength > 1
@@ -82,15 +74,15 @@ export function ResearchLiterature({ id, phase }) {
       const correction = hold - held;
       const textProgress = copy.map(node => viewportProgress(node.getBoundingClientRect().top + correction, height, .97, .77));
       // The last row completes its reveal as it comes fully into view.
-      const synthesisIn = viewportProgress(synthesis.getBoundingClientRect().bottom + correction, height, 1.08, .99);
+      const summaryProgress = summaries.map(summary =>
+        viewportProgress(summary.getBoundingClientRect().bottom + correction, height, 1.10, .995));
       held = hold;
       write(scene, '--literature-hold', hold + 'px');
-      write(synthesis, '--literature-text-progress', String(synthesisIn));
-      write(scene, '--literature-rewind', String(exitLength > 1 ? 1 - hold / exitLength : 1));
+      summaries.forEach((summary, index) => write(summary, '--literature-text-progress', String(summaryProgress[index])));
+      write(scene, '--literature-rewind', String(exitLength > 1 ? 1 - ease(.15, 1, hold / exitLength) : 1));
       scene.toggleAttribute('data-literature-exiting', hold > 0);
       if (next !== previous) {
         const firstCardIn = motion.matches ? 1 : ease(0, Math.min(11, height * .016), arrival);
-        write(scene, '--literature-progress', String(next));
         const turn = literatureTurn(next);
         cards.forEach((card, index) => {
           const { x, y, angle, travel, opacity } = literatureCardPose(index, next, turn);
@@ -102,7 +94,6 @@ export function ResearchLiterature({ id, phase }) {
         });
         previous = next;
       }
-      write(scene, '--literature-lift', lift + 'px');
       const titleTravel = Math.min(56, height * .082);
       const titleStep = Math.min(1, arrival / titleTravel);
       write(scene, '--literature-title-in', String(motion.matches ? 1 : 1 - (1 - titleStep) ** 2));
@@ -131,7 +122,7 @@ export function ResearchLiterature({ id, phase }) {
     <div className="literature-layout">
       <header className="literature-hero" data-play-surface data-art-covered>
         <div className="literature-title-mask">
-          <h2 id={id + '-title'} tabIndex={-1}>Literature Map</h2>
+          <h2 id={id + '-title'} tabIndex={-1} data-title-reveal>Literature Map</h2>
         </div>
         <div className="literature-orbit" ref={orbit} aria-hidden="true">
           {sheets.map(({ slug, dark, inner, color }, index) => <span key={index} className="literature-paper"
@@ -161,7 +152,15 @@ export function ResearchLiterature({ id, phase }) {
         <aside className="literature-summary literature-synthesis">
           <Target aria-hidden="true" />
           <LiteratureReveal><h4>Synthesis</h4></LiteratureReveal>
-          <LiteratureReveal><p>Together, these four lines of inquiry explain how users understand and modify tasks in long conversations.</p></LiteratureReveal>
+          <LiteratureReveal><p>The four lines together provide a research foundation for task understanding and modification in long conversations.</p></LiteratureReveal>
+        </aside>
+        <aside className="literature-summary literature-gap">
+          <Binoculars aria-hidden="true" />
+          <LiteratureReveal><h4>Research Gap</h4></LiteratureReveal>
+          <LiteratureReveal className="literature-gap-detail">
+            <p><strong>Information → Scope → Verification</strong></p>
+            <p>How to connect information relations, the scope of changes, and execution verification.</p>
+          </LiteratureReveal>
         </aside>
       </div>
     </div>

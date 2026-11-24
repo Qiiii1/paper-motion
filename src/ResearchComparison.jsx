@@ -168,10 +168,12 @@ export function ResearchComparison() {
       const bottom = top + height;
       const questionsBand = parseFloat(getComputedStyle(questions.current).paddingTop);
       const studyBand = parseFloat(getComputedStyle(design.current).paddingTop);
+      const gapHeight = gap.current.firstElementChild.offsetHeight;
       layout.current = { viewport, band, bottom, questionsBand, studyBand, distance: departure.current.offsetHeight };
       plate.current.style.setProperty('--support-pin-top', top + 'px');
       scene.parentElement.style.setProperty('--gap-overlap', bottom + 'px');
-      scene.parentElement.style.setProperty('--questions-overlap', gap.current.firstElementChild.offsetHeight + 'px');
+      scene.parentElement.style.setProperty('--questions-overlap', gapHeight + 'px');
+      gap.current.style.setProperty('--gap-overhang', Math.max(0, gapHeight - viewport) + 'px');
       queue();
     }
 
@@ -209,6 +211,7 @@ export function ResearchComparison() {
       const nextGapPosition = motion.matches ? 1 : entrance;
       const nextGapHold = motion.matches ? 1 : 1 - ease(0, .31, gapExit);
       if (nextGapPosition !== gapPosition) {
+        gap.current.style.setProperty('--gap-pan', ease(.60, .92, nextGapPosition));
         gap.current.style.setProperty('--gap-progress', nextGapPosition);
         gapPosition = nextGapPosition;
       }
@@ -253,7 +256,7 @@ export function ResearchComparison() {
         <header className="research-support-intro">
           <div className="research-support-title" data-support-copy="intro">
             <div className="research-support-copy-mask">
-              <h2 className="research-support-copy-rise" id="research-support-title" tabIndex={-1}>
+              <h2 className="research-support-copy-rise" id="research-support-title" tabIndex={-1} data-title-reveal>
                 Research Support &amp; Limits
               </h2>
             </div>
